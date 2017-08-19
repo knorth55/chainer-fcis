@@ -13,11 +13,23 @@ from fcis.models import ResNet101C5
 class FCISResnet101(chainer.Chain):
 
     def __init__(
-            self, in_channels=512, mid_channels=512, ratios=[0.5, 1, 2],
+            self, ratios=[0.5, 1, 2],
             anchor_scales=[8, 16, 32], feat_stride=16,
-            proposal_creator_params={},
+            n_train_pre_nms=6000, n_train_post_nms=300,
+            n_test_pre_nms=6000, n_test_post_nms=300,
+            nms_thresh=0.7, rpn_min_size=16
     ):
         super(FCISResnet101, self).__init__()
+        proposal_creator_params = {
+            'nms_thresh': nms_thresh,
+            'n_train_pre_nms': n_train_pre_nms,
+            'n_train_post_nms': n_train_post_nms,
+            'n_test_pre_nms': n_test_pre_nms,
+            'n_test_post_nms': n_test_post_nms,
+            'force_cpu_nms': False,
+            'min_size': 16
+        }
+
         with self.init_scope():
             self.res1 = ResNet101C1()
             self.res2 = ResNet101C2()
@@ -33,8 +45,7 @@ class FCISResnet101(chainer.Chain):
             )
 
             self.res5 = ResNet101C5()
-            self.conv_new_1 = L.Convolution2D(
-                2048, 1024, 1, 1, 0)
+            self.conv_new_1 = L.Convolution2D(2048, 1024, 1, 1, 0)
 
     def __call__(self, x, scale=1.0):
         img_size = x.shape[2:]
