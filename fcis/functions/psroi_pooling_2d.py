@@ -117,7 +117,7 @@ class PSROIPooling2D(function.Function):
           self.outh, self.outw,  self.group_size, self.output_dim,
           bottom_rois, top_data)
 
-        return top_data
+        return top_data,
 
     def backward_cpu(self, inputs, gy):
         # NOT INPLEMENTED YET
@@ -155,7 +155,6 @@ class PSROIPooling2D(function.Function):
             // Force too small ROIs to be 1x1
             float roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
             float roi_height = max(roi_end_h - roi_start_h, 0.1);
-
             // Compute w and h at bottom
             float bin_size_h = roi_height / static_cast<float>(pooled_height);
             float bin_size_w = roi_width / static_cast<float>(pooled_width);
@@ -197,7 +196,7 @@ class PSROIPooling2D(function.Function):
           channels, height, width, self.outh, self.outw, self.group_size,
           self.output_dim, bottom_rois, bottom_diff)
 
-        return bottom_diff, None
+        return bottom_diff,
 
 
 def psroi_pooling_2d(
