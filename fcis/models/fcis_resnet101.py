@@ -22,7 +22,7 @@ class FCISResnet101(chainer.Chain):
             n_train_pre_nms=6000, n_train_post_nms=300,
             n_test_pre_nms=6000, n_test_post_nms=300,
             nms_thresh=0.7, rpn_min_size=16,
-            group_size=7, roi_size=21
+            group_size=7, roi_size=21,
     ):
         super(FCISResnet101, self).__init__()
         proposal_creator_params = {
@@ -74,24 +74,57 @@ class FCISResnet101(chainer.Chain):
         # RPN
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(
             h, img_size, scale)
-
-        h = self.res5(h)
-        h = F.relu(self.psroi_conv1(h))
-
-        # PSROI Pooling
-        h_seg = self.psroi_conv2(h)
-        h_bbox = self.psroi_conv3(h)
         roi_indices = roi_indices.astype(np.float32)
         indices_and_rois = self.xp.concatenate(
             (roi_indices[:, None], rois), axis=1)
-        h_seg = _psroi_pooling_2d_yx(
-            h_seg, indices_and_rois, self.roi_size, self.roi_size,
+
+        h = self.res5(h)
+        h = F.relu(self.psroi_conv1(h))
+        h_cls_seg = self.psroi_conv2(h)
+        h_bbox = self.psroi_conv3(h)
+
+        # PSROI Pooling
+        # shape: (n_rois, n_class*2, H, W)
+        h_cls_seg = _psroi_pooling_2d_yx(
+            h_cls_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
+        # shape: (n_rois, n_class, 2, H, W)
+        h_cls_seg = h_cls_seg.reshape((-1, self.n_class, 2,
+                                       self.roi_size, self.roi_size))
+        # shape: (n_rois, 2*4, H, W)
         h_bbox = _psroi_pooling_2d_yx(
             h_bbox, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=2*4)
+
+        # Classfication
+        # Group Max
+        # shape: (n_rois, n_class, H, W)
+        h_cls = F.max(h_cls_seg, axis=2)
+        # Global pooling (vote)
+        # shape: (n_rois, n_class)
+        cls_score = F.average(h_cls, axis=(2, 3))
+        cls_prob = F.Softmax(cls_score)
+
+        # Bbox Regression
+        # shape: (n_rois, 2*4)
+        bbox_pred = F.average(h_bbox, axis=(2, 3))
+
+        # Mask Regression
+        # Group Softmax
+        # shape: (n_rois, n_class, 2, H, W)
+        h_seg = F.softmax(h_cls_seg, axis=2)
+
+        # Group Pick by Score
+        max_cls_prob = cls_prob.argmax(axis=1)
+        max_cls_mask = self.xp.zeros(h_seg.shape[:2])
+        max_cls_mask[:, max_cls_prob] = 1
+        seg_pred = h_seg[max_cls_mask.astype(self.xp.bool)]
+        # shape: (n_rois, 2, H, W)
+        seg_pred = seg_pred.reshape((-1, 2, self.roi_size, self.roi_size))
+
+        return rois, roi_indices, cls_prob, bbox_pred, seg_pred
 
 
 def _psroi_pooling_2d_yx(
