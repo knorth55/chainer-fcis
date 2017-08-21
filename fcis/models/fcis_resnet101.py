@@ -85,7 +85,7 @@ class FCISResnet101(chainer.Chain):
             group_size=self.group_size, output_dim=self.n_class*2)
         h_bbox = _psroi_pooling_2d_yx(
             h_bbox, self.roi_size, self.roi_size, self.spatial_scale,
-            group_size=self.group_size, output_dim=2*2)
+            group_size=self.group_size, output_dim=2*4)
 
 
 def _psroi_pooling_2d_yx(
