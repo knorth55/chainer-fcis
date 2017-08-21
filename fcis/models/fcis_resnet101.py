@@ -75,7 +75,7 @@ class FCISResnet101(chainer.Chain):
             h, img_size, scale)
 
         h = self.res5(h)
-        h = F.relu(self.conv_new_1(h))
+        h = F.relu(self.psroi_conv1(h))
 
         # PSROI Pooling
         h_seg = self.psroi_conv2(h)
