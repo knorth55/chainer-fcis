@@ -9,6 +9,7 @@ from fcis.models import ResNet101C2
 from fcis.models import ResNet101C3
 from fcis.models import ResNet101C4
 from fcis.models import ResNet101C5
+import numpy as np
 
 
 class FCISResnet101(chainer.Chain):
@@ -80,12 +81,17 @@ class FCISResnet101(chainer.Chain):
         # PSROI Pooling
         h_seg = self.psroi_conv2(h)
         h_bbox = self.psroi_conv3(h)
+        roi_indices = roi_indices.astype(np.float32)
+        indices_and_rois = self.xp.concatenate(
+            (roi_indices[:, None], rois), axis=1)
         h_seg = _psroi_pooling_2d_yx(
-            h_seg, self.roi_size, self.roi_size, self.spatial_scale,
-            group_size=self.group_size, output_dim=self.n_class*2)
+            h_seg, indices_and_rois, self.roi_size, self.roi_size,
+            self.spatial_scale, group_size=self.group_size,
+            output_dim=self.n_class*2)
         h_bbox = _psroi_pooling_2d_yx(
-            h_bbox, self.roi_size, self.roi_size, self.spatial_scale,
-            group_size=self.group_size, output_dim=2*4)
+            h_bbox, indices_and_rois, self.roi_size, self.roi_size,
+            self.spatial_scale, group_size=self.group_size,
+            output_dim=2*4)
 
 
 def _psroi_pooling_2d_yx(
