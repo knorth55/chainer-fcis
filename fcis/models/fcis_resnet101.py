@@ -102,14 +102,19 @@ class FCISResnet101(chainer.Chain):
         # Group Max
         # shape: (n_rois, n_class, H, W)
         h_cls = F.max(h_cls_seg, axis=2)
+        h_cls = h_cls.reshape(
+            (h_cls.shape[0], h_cls.shape[1], h_cls.shape[2] * h_cls.shape[3]))
         # Global pooling (vote)
         # shape: (n_rois, n_class)
-        cls_score = F.average(h_cls, axis=(2, 3))
+        cls_score = F.average(h_cls, axis=2)
         cls_prob = F.Softmax(cls_score)
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
-        bbox_pred = F.average(h_bbox, axis=(2, 3))
+        h_bbox = h_bbox.reshape(
+            (h_bbox.shape[0], h_bbox.shape[1],
+             h_bbox.shape[2] * h_bbox.shape[3]))
+        bbox_pred = F.average(h_bbox, axis=2)
 
         # Mask Regression
         # Group Softmax
