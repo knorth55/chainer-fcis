@@ -4,15 +4,15 @@ import chainer.links as L
 from chainercv.links.model.faster_rcnn.region_proposal_network import \
     RegionProposalNetwork
 import fcis.functions
-from fcis.models import ResNet101C1
-from fcis.models import ResNet101C2
-from fcis.models import ResNet101C3
-from fcis.models import ResNet101C4
-from fcis.models import ResNet101C5
+from fcis.models.resnet101 import ResNet101C1
+from fcis.models.resnet101 import ResNet101C2
+from fcis.models.resnet101 import ResNet101C3
+from fcis.models.resnet101 import ResNet101C4
+from fcis.models.resnet101 import ResNet101C5
 import numpy as np
 
 
-class FCISResnet101(chainer.Chain):
+class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
 
@@ -24,7 +24,7 @@ class FCISResnet101(chainer.Chain):
             nms_thresh=0.7, rpn_min_size=16,
             group_size=7, roi_size=21,
     ):
-        super(FCISResnet101, self).__init__()
+        super(FCISResNet101, self).__init__()
         proposal_creator_params = {
             'nms_thresh': nms_thresh,
             'n_train_pre_nms': n_train_pre_nms,
