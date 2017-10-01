@@ -50,7 +50,7 @@ class PSROIPooling2D(function.Function):
             '''
             raw float32 bottom_data, float32 spatial_scale, int32 channels,
             int32 height, int32 width, int32 pooled_height, int32 pooled_width,
-            int32, group_size, int32 output_dim, raw float32 bottom_rois,
+            int32 group_size, int32 output_dim, raw float32 bottom_rois
             ''',
             'float32 top_data',
             '''
