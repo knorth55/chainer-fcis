@@ -109,7 +109,7 @@ class FCISResNet101(chainer.Chain):
         # Global pooling (vote)
         # shape: (n_rois, n_class)
         cls_score = F.average(h_cls, axis=2)
-        cls_prob = F.Softmax(cls_score)
+        cls_prob = F.softmax(cls_score)
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
@@ -124,10 +124,10 @@ class FCISResNet101(chainer.Chain):
         h_seg = F.softmax(h_cls_seg, axis=2)
 
         # Group Pick by Score
-        max_cls_prob = cls_prob.argmax(axis=1)
+        max_cls_prob = cls_prob.data.argmax(axis=1)
         max_cls_mask = self.xp.zeros(h_seg.shape[:2])
         max_cls_mask[:, max_cls_prob] = 1
-        seg_pred = h_seg[max_cls_mask.astype(self.xp.bool)]
+        seg_pred = h_seg[max_cls_mask.astype(bool)]
         # shape: (n_rois, 2, H, W)
         seg_pred = seg_pred.reshape((-1, 2, self.roi_size, self.roi_size))
 
