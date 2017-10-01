@@ -37,6 +37,8 @@ class FCISResNet101(chainer.Chain):
 
         self.n_class = n_class
         self.spatial_scale = 1. / self.feat_stride
+        self.group_size = group_size
+        self.roi_size = roi_size
 
         with self.init_scope():
             # ResNet
