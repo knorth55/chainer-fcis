@@ -23,6 +23,8 @@ class FCISResNet101(chainer.Chain):
             n_test_pre_nms=6000, n_test_post_nms=300,
             nms_thresh=0.7, rpn_min_size=16,
             group_size=7, roi_size=21,
+            loc_normalize_mean=(0.0, 0.0, 0.0, 0.0),
+            loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
     ):
         super(FCISResNet101, self).__init__()
         proposal_creator_params = {
@@ -39,6 +41,8 @@ class FCISResNet101(chainer.Chain):
         self.spatial_scale = 1. / self.feat_stride
         self.group_size = group_size
         self.roi_size = roi_size
+        self.loc_normalize_mean = loc_normalize_mean
+        self.loc_normalize_std = loc_normalize_std
 
         with self.init_scope():
             # ResNet
@@ -82,56 +86,65 @@ class FCISResNet101(chainer.Chain):
 
         h = self.res5(h)
         h = F.relu(self.psroi_conv1(h))
-        h_cls_seg = self.psroi_conv2(h)
-        h_bbox = self.psroi_conv3(h)
+        h_seg = self.psroi_conv2(h)
+        h_locs = self.psroi_conv3(h)
 
         # PSROI Pooling
         # shape: (n_rois, n_class*2, H, W)
-        h_cls_seg = _psroi_pooling_2d_yx(
-            h_cls_seg, indices_and_rois, self.roi_size, self.roi_size,
+        h_seg = _psroi_pooling_2d_yx(
+            h_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
         # shape: (n_rois, n_class, 2, H, W)
-        h_cls_seg = h_cls_seg.reshape((-1, self.n_class, 2,
-                                       self.roi_size, self.roi_size))
+        h_seg = h_seg.reshape(
+            (-1, self.n_class, 2, self.roi_size, self.roi_size))
         # shape: (n_rois, 2*4, H, W)
-        h_bbox = _psroi_pooling_2d_yx(
-            h_bbox, indices_and_rois, self.roi_size, self.roi_size,
+        h_locs = _psroi_pooling_2d_yx(
+            h_locs, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=2*4)
 
         # Classfication
         # Group Max
         # shape: (n_rois, n_class, H, W)
-        h_cls = F.max(h_cls_seg, axis=2)
+        h_cls = F.max(h_seg, axis=2)
         h_cls = h_cls.reshape(
             (h_cls.shape[0], h_cls.shape[1], h_cls.shape[2] * h_cls.shape[3]))
         # Global pooling (vote)
         # shape: (n_rois, n_class)
-        cls_score = F.average(h_cls, axis=2)
-        cls_prob = F.softmax(cls_score)
+        roi_cls_scores = F.average(h_cls, axis=2)
+        roi_cls_probs = F.softmax(roi_cls_scores)
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
-        h_bbox = h_bbox.reshape(
-            (h_bbox.shape[0], h_bbox.shape[1],
-             h_bbox.shape[2] * h_bbox.shape[3]))
-        bbox_pred = F.average(h_bbox, axis=2)
+        h_locs = h_locs.reshape(
+            (h_locs.shape[0], h_locs.shape[1],
+             h_locs.shape[2] * h_locs.shape[3]))
+        roi_locs = F.average(h_locs, axis=2)
 
         # Mask Regression
-        # Group Softmax
-        # shape: (n_rois, n_class, 2, H, W)
-        h_seg = F.softmax(h_cls_seg, axis=2)
-
         # Group Pick by Score
-        max_cls_prob = cls_prob.data.argmax(axis=1)
+        max_cls_prob = roi_cls_probs.data.argmax(axis=1)
         max_cls_mask = self.xp.zeros(h_seg.shape[:2])
         max_cls_mask[:, max_cls_prob] = 1
-        seg_pred = h_seg[max_cls_mask.astype(bool)]
+        roi_seg_scores = h_seg[max_cls_mask.astype(bool)]
         # shape: (n_rois, 2, H, W)
-        seg_pred = seg_pred.reshape((-1, 2, self.roi_size, self.roi_size))
+        roi_seg_scores = roi_seg_scores.reshape(
+            (-1, 2, self.roi_size, self.roi_size))
 
-        return rois, roi_indices, cls_prob, bbox_pred, seg_pred
+        # Group Softmax
+        # shape: (n_rois, 2, H, W)
+        roi_seg_probs = F.softmax(roi_seg_scores, axis=1)
+
+        # iter_twice is not implemented yet
+
+        self.rois = rois
+        self.roi_indices = roi_indices
+        self.roi_locs = roi_locs
+        self.roi_cls_scores = roi_cls_scores
+        self.roi_cls_probs = roi_cls_probs
+        self.roi_seg_scores = roi_seg_scores
+        self.roi_seg_probs = roi_seg_probs
 
 
 def _psroi_pooling_2d_yx(
