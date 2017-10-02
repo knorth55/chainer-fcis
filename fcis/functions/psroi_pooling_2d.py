@@ -1,10 +1,7 @@
-# Modified work by Shingo Kitagawa
+# Cuda Kernel Original work by Haozhi Qi (@Oh233)
+# https://github.com/msracver/FCIS
 
-# Original work of PFN:
-# -----------------------------------------------------------------------------
-# Copyright (c) 2015 Preferred Infrastructure, Inc.
-# Copyright (c) 2015 Preferred Networks, Inc.
-# -----------------------------------------------------------------------------
+# Modified by Shingo Kitagawa (@knorth55)
 
 import numpy
 
