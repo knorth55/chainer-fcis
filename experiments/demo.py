@@ -61,20 +61,13 @@ def main():
 
         rois = model.rois
         rois = rois / scale
-        roi_locs = model.roi_locs.data
-        roi_cls_probs = model.roi_cls_probs.data
-        roi_seg_probs = model.roi_seg_probs.data
+        roi_cls_probs = model.roi_cls_probs
+        roi_seg_probs = model.roi_seg_probs
 
-        mean = cupy.tile(cupy.asarray(model.loc_normalize_mean), 2)
-        std = cupy.tile(cupy.asarray(model.loc_normalize_std), 2)
-        roi_locs = (roi_locs * std + mean).astype(cupy.float32)
-        roi_locs = roi_locs.reshape((-1, 2, 4))
-        rois = cupy.broadcast_to(rois[:, None], roi_locs.shape)
-        bboxes = loc2bbox(rois.reshape((-1, 4)),
-                          roi_locs.reshape(-1, 4))
-        bboxes = bboxes.reshape((-1, 2*4))
-        bboxes[:, 0::2] = cupy.clip(bboxes[:, 0::2], 0, H)
-        bboxes[:, 1::2] = cupy.clip(bboxes[:, 1::2], 0, W)
+        rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, H - 1)
+        rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, W - 1)
+
+        # voting not implemented yet
 
 
 if __name__ == '__main__':
