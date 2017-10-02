@@ -3,6 +3,7 @@ import chainer.functions as F
 import chainer.links as L
 from chainercv.links.model.faster_rcnn.region_proposal_network import \
     RegionProposalNetwork
+from chainercv.links.model.faster_rcnn.utils.loc2bbox import loc2bbox
 import fcis.functions
 from fcis.models.resnet101 import ResNet101C1
 from fcis.models.resnet101 import ResNet101C2
@@ -89,17 +90,64 @@ class FCISResNet101(chainer.Chain):
         h_seg = self.psroi_conv2(h)
         h_locs = self.psroi_conv3(h)
 
+        roi_locs, roi_cls_scores, roi_seg_scores = self._pool_and_predict(
+            indices_and_rois, h_seg, h_locs)
+        # shape: (n_rois, 2)
+        roi_cls_probs = F.softmax(roi_cls_scores)
+        # shape: (n_rois, 2, H, W)
+        roi_seg_probs = F.softmax(roi_seg_scores)
+
+        # Iter2
+        roi_locs = roi_locs.data
+        roi_locs = roi_locs[:, 4:]
+        mean = self.xp.array(self.loc_normalize_mean)
+        std = self.xp.array(self.loc_normalize_std)
+        roi_locs = roi_locs * std + mean
+        rois2 = loc2bbox(rois, roi_locs)
+        H, W = img_size
+        rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H - 1)
+        rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W - 1)
+
+        indices_and_rois2 = self.xp.concatenate(
+            (roi_indices[:, None], rois2), axis=1)
+        indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
+        _, roi_cls_scores2, roi_seg_scores2 = self._pool_and_predict(
+            indices_and_rois2, h_seg, h_locs)
+        # shape: (n_rois, 2)
+        roi_cls_probs2 = F.softmax(roi_cls_scores2)
+        # shape: (n_rois, 2, H, W)
+        roi_seg_probs2 = F.softmax(roi_seg_scores2)
+
+        rois = self.xp.concatenate((rois, rois2))
+        roi_indices = self.xp.concatenate((roi_indices, roi_indices))
+        roi_cls_scores = self.xp.concatenate(
+            (roi_cls_scores.data, roi_cls_scores2.data))
+        roi_cls_probs = self.xp.concatenate(
+            (roi_cls_probs.data, roi_cls_probs2.data))
+        roi_seg_scores = self.xp.concatenate(
+            (roi_seg_scores.data, roi_seg_scores2.data))
+        roi_seg_probs = self.xp.concatenate(
+            (roi_seg_probs.data, roi_seg_probs2.data))
+
+        self.rois = rois
+        self.roi_indices = roi_indices
+        self.roi_cls_scores = roi_cls_scores
+        self.roi_cls_probs = roi_cls_probs
+        self.roi_seg_scores = roi_seg_scores
+        self.roi_seg_probs = roi_seg_probs
+
+    def _pool_and_predict(self, indices_and_rois, h_seg, h_locs):
         # PSROI Pooling
         # shape: (n_rois, n_class*2, H, W)
-        h_seg = _psroi_pooling_2d_yx(
+        pool_seg = _psroi_pooling_2d_yx(
             h_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
         # shape: (n_rois, n_class, 2, H, W)
-        h_seg = h_seg.reshape(
+        pool_seg = pool_seg.reshape(
             (-1, self.n_class, 2, self.roi_size, self.roi_size))
         # shape: (n_rois, 2*4, H, W)
-        h_locs = _psroi_pooling_2d_yx(
+        pool_locs = _psroi_pooling_2d_yx(
             h_locs, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=2*4)
@@ -107,44 +155,32 @@ class FCISResNet101(chainer.Chain):
         # Classfication
         # Group Max
         # shape: (n_rois, n_class, H, W)
-        h_cls = F.max(h_seg, axis=2)
+        h_cls = F.max(pool_seg, axis=2)
         h_cls = h_cls.reshape(
             (h_cls.shape[0], h_cls.shape[1], h_cls.shape[2] * h_cls.shape[3]))
         # Global pooling (vote)
         # shape: (n_rois, n_class)
         roi_cls_scores = F.average(h_cls, axis=2)
-        roi_cls_probs = F.softmax(roi_cls_scores)
 
         # Bbox Regression
+        # shape: (n_rois, 2*4, H*W)
+        pool_locs = pool_locs.reshape(
+            (pool_locs.shape[0], pool_locs.shape[1],
+             pool_locs.shape[2] * pool_locs.shape[3]))
         # shape: (n_rois, 2*4)
-        h_locs = h_locs.reshape(
-            (h_locs.shape[0], h_locs.shape[1],
-             h_locs.shape[2] * h_locs.shape[3]))
-        roi_locs = F.average(h_locs, axis=2)
+        roi_locs = F.average(pool_locs, axis=2)
 
         # Mask Regression
         # Group Pick by Score
-        max_cls_prob = roi_cls_probs.data.argmax(axis=1)
-        max_cls_mask = self.xp.zeros(h_seg.shape[:2])
+        max_cls_prob = roi_cls_scores.data.argmax(axis=1)
+        max_cls_mask = self.xp.zeros(pool_seg.shape[:2])
         max_cls_mask[:, max_cls_prob] = 1
-        roi_seg_scores = h_seg[max_cls_mask.astype(bool)]
+        roi_seg_scores = pool_seg[max_cls_mask.astype(bool)]
         # shape: (n_rois, 2, H, W)
         roi_seg_scores = roi_seg_scores.reshape(
             (-1, 2, self.roi_size, self.roi_size))
 
-        # Group Softmax
-        # shape: (n_rois, 2, H, W)
-        roi_seg_probs = F.softmax(roi_seg_scores, axis=1)
-
-        # iter_twice is not implemented yet
-
-        self.rois = rois
-        self.roi_indices = roi_indices
-        self.roi_locs = roi_locs
-        self.roi_cls_scores = roi_cls_scores
-        self.roi_cls_probs = roi_cls_probs
-        self.roi_seg_scores = roi_seg_scores
-        self.roi_seg_probs = roi_seg_probs
+        return roi_locs, roi_cls_scores, roi_seg_scores
 
 
 def _psroi_pooling_2d_yx(
