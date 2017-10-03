@@ -64,8 +64,8 @@ def main():
         roi_cls_probs = model.roi_cls_probs
         roi_seg_probs = model.roi_seg_probs
 
-        rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, H - 1)
-        rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, W - 1)
+        rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, H)
+        rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, W)
 
         # voting not implemented yet
 
