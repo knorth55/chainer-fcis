@@ -58,19 +58,18 @@ class PSROIPooling2D(function.Function):
             int n = i / pooled_width / pooled_height / output_dim;
 
             int roi_batch_ind = bottom_rois[n * 5 + 0];
-            float center_h = static_cast<float>(
+            float roi_start_w = static_cast<float>(
                 round(bottom_rois[n * 5 + 1])) * spatial_scale;
-            float center_w = static_cast<float>(
+            float roi_start_h = static_cast<float>(
                 round(bottom_rois[n * 5 + 2])) * spatial_scale;
-            float roi_height = static_cast<float>(
-                round(bottom_rois[n * 5 + 3])) * spatial_scale;
-            float roi_width = static_cast<float>(
-                round(bottom_rois[n * 5 + 4])) * spatial_scale;
+            float roi_end_w = static_cast<float>(
+                round(bottom_rois[n * 5 + 3]) + 1.) * spatial_scale;
+            float roi_end_h = static_cast<float>(
+                round(bottom_rois[n * 5 + 4]) + 1.) * spatial_scale;
 
-            float roi_start_w = center_w - 0.5 * roi_width;
-            float roi_start_h = center_h - 0.5 * roi_height;
-            float roi_end_w = center_w + 0.5 * roi_width;
-            float roi_end_h = center_h + 0.5 * roi_height;
+            // Force too small ROIs to be 1x1
+            float roi_width = max(roi_end_w - roi_start_w, 0.1);  // avoid 0
+            float roi_height = max(roi_end_h - roi_start_h, 0.1);
 
             // Compute w and h at bottom
             float bin_size_h = roi_height / static_cast<float>(pooled_height);
@@ -141,20 +140,18 @@ class PSROIPooling2D(function.Function):
 
             // [start, end) interval for spatial sampling
             int roi_batch_ind = bottom_rois[n * 5 + 0];
-            float center_h = static_cast<float>(
+            float roi_start_w = static_cast<float>(
                 round(bottom_rois[n * 5 + 1])) * spatial_scale;
-            float center_w = static_cast<float>(
+            float roi_start_h = static_cast<float>(
                 round(bottom_rois[n * 5 + 2])) * spatial_scale;
-            float roi_height = static_cast<float>(
-                round(bottom_rois[n * 5 + 3])) * spatial_scale;
-            float roi_width = static_cast<float>(
-                round(bottom_rois[n * 5 + 4])) * spatial_scale;
+            float roi_end_w = static_cast<float>(
+                round(bottom_rois[n * 5 + 3]) + 1.) * spatial_scale;
+            float roi_end_h = static_cast<float>(
+                round(bottom_rois[n * 5 + 4]) + 1.) * spatial_scale;
 
-            float roi_start_w = center_w - 0.5 * roi_width;
-            float roi_start_h = center_h - 0.5 * roi_height;
-            float roi_end_w = center_w + 0.5 * roi_width;
-            float roi_end_h = center_h + 0.5 * roi_height;
-
+            // Force too small ROIs to be 1x1
+            float roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
+            float roi_height = max(roi_end_h - roi_start_h, 0.1);
             // Compute w and h at bottom
             float bin_size_h = roi_height / static_cast<float>(pooled_height);
             float bin_size_w = roi_width / static_cast<float>(pooled_width);
