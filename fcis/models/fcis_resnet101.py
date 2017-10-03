@@ -92,7 +92,7 @@ class FCISResNet101(chainer.Chain):
 
         roi_locs, roi_cls_scores, roi_seg_scores = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
-        # shape: (n_rois, 2)
+        # shape: (n_rois, n_class)
         roi_cls_probs = F.softmax(roi_cls_scores)
         # shape: (n_rois, 2, H, W)
         roi_seg_probs = F.softmax(roi_seg_scores)
@@ -113,7 +113,7 @@ class FCISResNet101(chainer.Chain):
         indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
         _, roi_cls_scores2, roi_seg_scores2 = self._pool_and_predict(
             indices_and_rois2, h_seg, h_locs)
-        # shape: (n_rois, 2)
+        # shape: (n_rois, n_class)
         roi_cls_probs2 = F.softmax(roi_cls_scores2)
         # shape: (n_rois, 2, H, W)
         roi_seg_probs2 = F.softmax(roi_seg_scores2)
@@ -172,10 +172,8 @@ class FCISResNet101(chainer.Chain):
 
         # Mask Regression
         # Group Pick by Score
-        max_cls_prob = roi_cls_scores.data.argmax(axis=1)
-        max_cls_mask = self.xp.zeros(pool_seg.shape[:2])
-        max_cls_mask[:, max_cls_prob] = 1
-        roi_seg_scores = pool_seg[max_cls_mask.astype(bool)]
+        max_cls_idx = roi_cls_scores.data.argmax(axis=1)
+        roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
         # shape: (n_rois, 2, H, W)
         roi_seg_scores = roi_seg_scores.reshape(
             (-1, 2, self.roi_size, self.roi_size))
