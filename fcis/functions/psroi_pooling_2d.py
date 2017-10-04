@@ -63,9 +63,9 @@ class PSROIPooling2D(function.Function):
             float roi_start_h = static_cast<float>(
                 round(bottom_rois[n * 5 + 2])) * spatial_scale;
             float roi_end_w = static_cast<float>(
-                round(bottom_rois[n * 5 + 3]) + 1.) * spatial_scale;
+                round(bottom_rois[n * 5 + 3])) * spatial_scale;
             float roi_end_h = static_cast<float>(
-                round(bottom_rois[n * 5 + 4]) + 1.) * spatial_scale;
+                round(bottom_rois[n * 5 + 4])) * spatial_scale;
 
             // Force too small ROIs to be 1x1
             float roi_width = max(roi_end_w - roi_start_w, 0.1);  // avoid 0
@@ -145,9 +145,9 @@ class PSROIPooling2D(function.Function):
             float roi_start_h = static_cast<float>(
                 round(bottom_rois[n * 5 + 2])) * spatial_scale;
             float roi_end_w = static_cast<float>(
-                round(bottom_rois[n * 5 + 3]) + 1.) * spatial_scale;
+                round(bottom_rois[n * 5 + 3])) * spatial_scale;
             float roi_end_h = static_cast<float>(
-                round(bottom_rois[n * 5 + 4]) + 1.) * spatial_scale;
+                round(bottom_rois[n * 5 + 4])) * spatial_scale;
 
             // Force too small ROIs to be 1x1
             float roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
