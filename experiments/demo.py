@@ -5,11 +5,11 @@ import chainer
 from chainercv.utils.bbox.bbox_iou import bbox_iou
 from chainercv.utils import non_maximum_suppression
 import cupy
+import cv2
 import fcis
 import numpy as np
 import os
 import os.path as osp
-import scipy.misc
 import yaml
 
 
@@ -33,6 +33,8 @@ def main():
         config = yaml.load(f)
 
     n_class = config['n_class']
+    target_height = config['target_height']
+    max_width = config['max_width']
     score_thresh = config['score_thresh']
     nms_thresh = config['nms_thresh']
     mask_merge_thresh = config['mask_merge_thresh']
@@ -47,16 +49,24 @@ def main():
     images = os.listdir(imagedir)
     for image_name in images:
         imagepath = osp.join(imagedir, image_name)
-        img = scipy.misc.imread(imagepath)
+        print('image: {}'.format(imagepath))
+        img = cv2.imread(
+            imagepath, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
         H, W, _ = img.shape
-        img = scipy.misc.imresize(img, tuple(config['image_size']))
+        resize_scale = target_height / float(H)
+        if W * resize_scale > max_width:
+            resize_scale = max_width / float(W)
+        img = cv2.resize(
+            img, None, None,
+            fx=resize_scale, fy=resize_scale,
+            interpolation=cv2.INTER_LINEAR)
         scale = img.shape[1] / float(W)
 
         # inference
         x_data = img.copy()
         x_data = x_data.astype(np.float32)
-        x_data = x_data[:, :, ::-1]  # RGB -> BGR
         x_data -= mean_bgr
+        x_data = x_data[:, :, ::-1]  # BGR -> RGB
         x_data = x_data.transpose(2, 0, 1)  # H, W, C -> C, H, W
         x = chainer.Variable(np.array([x_data], dtype=np.float32))
         x.to_gpu(gpu)
@@ -112,7 +122,7 @@ def main():
                 rois_l = rois[idx]
                 orig_mask, voted_bbox[i] = mask_aggregation(
                     rois_l, mask_probs_l, mask_weights, H, W, binary_thresh)
-                voted_mask[i] = scipy.misc.imresize(
+                voted_mask[i] = cv2.resize(
                     orig_mask.astype(np.float32), (mask_size, mask_size))
 
             cls_probs_l = cls_probs[l]
@@ -130,8 +140,8 @@ def mask_aggregation(
     mask = np.zeros((H, W))
     for bbox, mask_prob, mask_weight in zip(bboxes, mask_probs, mask_weights):
         bbox = np.round(bbox).astype(np.int)
-        mask_prob = scipy.misc.imresize(
-            mask_prob, (bbox[2] - bbox[0], bbox[3] - bbox[1]))
+        mask_prob = cv2.resize(
+            mask_prob, (bbox[3] - bbox[1], bbox[2] - bbox[0]))
         mask_mask = (mask_prob >= binary_thresh).astype(np.float)
         mask[bbox[0]:bbox[2], bbox[1]:bbox[3]] += mask_mask * mask_weight
 
