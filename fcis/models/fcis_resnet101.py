@@ -77,6 +77,7 @@ class FCISResNet101(chainer.Chain):
         h = self.res2(h)
         h = self.res3(h)
         h = self.res4(h)
+        self.res4_h = h
 
         # RPN
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(
@@ -86,6 +87,8 @@ class FCISResNet101(chainer.Chain):
             (roi_indices[:, None], rois), axis=1)
 
         h = self.res5(h)
+        self.res5_h = h
+
         h = F.relu(self.psroi_conv1(h))
         h_seg = self.psroi_conv2(h)
         h_locs = self.psroi_conv3(h)
