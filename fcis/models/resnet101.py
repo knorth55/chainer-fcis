@@ -46,7 +46,7 @@ class DilatedBottleNeckA(chainer.Chain):
 
     eps = 1e-5
 
-    def __init__(self, in_size, out_size, ch, stride=2):
+    def __init__(self, in_size, out_size, ch, stride=1):
         super(DilatedBottleNeckA, self).__init__()
         initialW = initializers.HeNormal()
 
@@ -209,7 +209,7 @@ class ResNet101C5(chainer.Chain):
     def __init__(self):
         super(ResNet101C5, self).__init__()
         with self.init_scope():
-            self.res5_a = DilatedBottleNeckA(1024, 2048, 512, stride=2)
+            self.res5_a = DilatedBottleNeckA(1024, 2048, 512, stride=1)
             for i in range(1, self.layer):
                 self.add_link('res5_b{}'.format(i),
                               DilatedBottleNeckB(2048, 512))
