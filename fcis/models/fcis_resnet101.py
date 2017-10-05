@@ -85,13 +85,17 @@ class FCISResNet101(chainer.Chain):
         roi_indices = roi_indices.astype(np.float32)
         indices_and_rois = self.xp.concatenate(
             (roi_indices[:, None], rois), axis=1)
+        self.rois1 = rois
 
         h = self.res5(h)
         self.res5_h = h
 
         h = F.relu(self.psroi_conv1(h))
+        self.psroi_conv1_h = h
         h_seg = self.psroi_conv2(h)
+        self.psroi_conv2_h = h_seg
         h_locs = self.psroi_conv3(h)
+        self.psroi_conv3_h = h_locs
 
         roi_locs, roi_cls_scores, roi_seg_scores = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
