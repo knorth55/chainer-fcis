@@ -35,7 +35,7 @@ class FCISResNet101(chainer.Chain):
             'n_test_pre_nms': n_test_pre_nms,
             'n_test_post_nms': n_test_post_nms,
             'force_cpu_nms': False,
-            'min_size': 16
+            'min_size': 2
         }
 
         self.n_class = n_class
