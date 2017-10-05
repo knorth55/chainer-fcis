@@ -36,10 +36,11 @@ def main():
 
     # convolution weight
     for name, value in arg_params.items():
+        value = value.asnumpy()
         # ResNetC1
         if name.startswith('conv1'):
-            assert model.res1.conv1.W.data.shape == value.asnumpy().shape, name
-            model.res1.conv1.W.data = value.asnumpy()
+            assert model.res1.conv1.W.data.shape == value.shape, name
+            model.res1.conv1.W.data = value
         # ResNetC2-5
         elif name.startswith('res'):
             block_name, branch_name, _ = name.split('_')
@@ -56,12 +57,11 @@ def main():
             res = getattr(model, res_name)
             bottle = getattr(res, bottle_name)
             layer = getattr(bottle, conv_branch[branch_name])
-            assert layer.W.data.shape == value.asnumpy().shape, name
-            layer.W.data = value.asnumpy()
+            assert layer.W.data.shape == value.shape, name
+            layer.W.data = value
         # RPN
         elif name.startswith('rpn'):
             _, layer_name, _, data_type = name.split('_')
-            v = value.asnumpy()
             if layer_name == 'conv':
                 layer = model.rpn.conv1
             elif layer_name == 'cls':
@@ -70,67 +70,67 @@ def main():
                 layer = model.rpn.loc
 
             if data_type == 'weight':
-                assert layer.W.data.shape == v.shape, name
+                assert layer.W.data.shape == value.shape, name
                 if layer_name == 'cls':
-                    v = v.reshape((2, -1, 512, 1, 1))
-                    v = v.transpose((1, 0, 2, 3, 4))
-                    v = v.reshape((-1, 512, 1, 1))
+                    value = value.reshape((2, -1, 512, 1, 1))
+                    value = value.transpose((1, 0, 2, 3, 4))
+                    value = value.reshape((-1, 512, 1, 1))
                 elif layer_name == 'bbox':
-                    v = v.reshape((-1, 4, 512, 1, 1))
-                    v = v[:, [1, 0, 3, 2]]
-                    v = v.reshape((-1, 512, 1, 1))
-                layer.W.data = v
+                    value = value.reshape((-1, 4, 512, 1, 1))
+                    value = value[:, [1, 0, 3, 2]]
+                    value = value.reshape((-1, 512, 1, 1))
+                layer.W.data = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == v.shape, name
+                assert layer.b.data.shape == value.shape, name
                 if layer_name == 'cls':
-                    v = v.reshape((2, -1))
-                    v = v.transpose((1, 0))
-                    v = v.reshape((-1,))
+                    value = value.reshape((2, -1))
+                    value = value.transpose((1, 0))
+                    value = value.reshape((-1,))
                 elif layer_name == 'bbox':
-                    v = v.reshape((-1, 4))
-                    v = v[:, [1, 0, 3, 2]]
-                    v = v.reshape((-1,))
-                layer.b.data = v
+                    value = value.reshape((-1, 4))
+                    value = value[:, [1, 0, 3, 2]]
+                    value = value.reshape((-1,))
+                layer.b.data = value
         # psroi_conv1
         elif name.startswith('conv_new'):
             data_type = name.split('_')[3]
             layer = model.psroi_conv1
             if data_type == 'weight':
-                assert layer.W.data.shape == value.asnumpy().shape, name
-                layer.W.data = value.asnumpy()
+                assert layer.W.data.shape == value.shape, name
+                layer.W.data = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.asnumpy().shape, name
-                layer.b.data = value.asnumpy()
+                assert layer.b.data.shape == value.shape, name
+                layer.b.data = value
         # psroi_conv2
         elif name.startswith('fcis_cls_seg'):
             data_type = name.split('_')[3]
             layer = model.psroi_conv2
             if data_type == 'weight':
-                assert layer.W.data.shape == value.asnumpy().shape, name
-                layer.W.data = value.asnumpy()
+                assert layer.W.data.shape == value.shape, name
+                layer.W.data = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.asnumpy().shape, name
-                layer.b.data = value.asnumpy()
+                assert layer.b.data.shape == value.shape, name
+                layer.b.data = value
         # psroi_conv3
         elif name.startswith('fcis_bbox'):
             data_type = name.split('_')[2]
             layer = model.psroi_conv3
             if data_type == 'weight':
-                assert layer.W.data.shape == value.asnumpy().shape, name
-                layer.W.data = value.asnumpy()
+                assert layer.W.data.shape == value.shape, name
+                layer.W.data = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.asnumpy().shape, name
-                layer.b.data = value.asnumpy()
+                assert layer.b.data.shape == value.shape, name
+                layer.b.data = value
         else:
             layer_name, branch_name, data_type = name.split('_')
             if layer_name == 'bn':
                 layer = model.res1.bn1
                 if data_type == 'beta':
-                    assert layer.beta.data.shape == value.asnumpy().shape
-                    layer.beta.data = value.asnumpy()
+                    assert layer.beta.data.shape == value.shape
+                    layer.beta.data = value
                 elif data_type == 'gamma':
-                    assert layer.gamma.data.shape == value.asnumpy().shape
-                    layer.gamma.data = value.asnumpy()
+                    assert layer.gamma.data.shape == value.shape
+                    layer.gamma.data = value
             else:
                 res_name = 'res{}'.format(layer_name[2])
                 block_name = layer_name[3:]
@@ -147,22 +147,23 @@ def main():
                 bottle = getattr(res, bottle_name)
                 layer = getattr(bottle, bn_branch[branch_name])
                 if data_type == 'beta':
-                    assert layer.beta.data.shape == value.asnumpy().shape, name
-                    layer.beta.data = value.asnumpy()
+                    assert layer.beta.data.shape == value.shape, name
+                    layer.beta.data = value
                 elif data_type == 'gamma':
-                    assert layer.gamma.shape == value.asnumpy().shape, name
-                    layer.gamma.data = value.asnumpy()
+                    assert layer.gamma.shape == value.shape, name
+                    layer.gamma.data = value
 
     for name, value in aux_params.items():
+        value = value.asnumpy()
         layer_name, branch_name, _, data_type = name.split('_')
         if layer_name == 'bn':
             layer = model.res1.bn1
             if data_type == 'var':
-                assert layer.avg_var.shape == value.asnumpy().shape, name
-                layer.avg_var = value.asnumpy()
+                assert layer.avg_var.shape == value.shape, name
+                layer.avg_var = value
             elif data_type == 'mean':
-                assert layer.avg_mean.shape == value.asnumpy().shape, name
-                layer.avg_mean = value.asnumpy()
+                assert layer.avg_mean.shape == value.shape, name
+                layer.avg_mean = value
         else:
             res_name = 'res{}'.format(layer_name[2])
             block_name = layer_name[3:]
@@ -179,11 +180,11 @@ def main():
             bottle = getattr(res, bottle_name)
             layer = getattr(bottle, bn_branch[branch_name])
             if data_type == 'var':
-                assert layer.avg_var.shape == value.asnumpy().shape, name
-                layer.avg_var = value.asnumpy()
+                assert layer.avg_var.shape == value.shape, name
+                layer.avg_var = value
             elif data_type == 'mean':
-                assert layer.avg_mean.shape == value.asnumpy().shape, name
-                layer.avg_mean = value.asnumpy()
+                assert layer.avg_mean.shape == value.shape, name
+                layer.avg_mean = value
 
     chainer.serializers.save_npz('./fcis_coco.npz', model)
 
