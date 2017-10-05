@@ -112,8 +112,8 @@ class FCISResNet101(chainer.Chain):
         roi_locs = roi_locs * std + mean
         rois2 = loc2bbox(rois, roi_locs)
         H, W = img_size
-        rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H - 1)
-        rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W - 1)
+        rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H)
+        rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W)
 
         indices_and_rois2 = self.xp.concatenate(
             (roi_indices[:, None], rois2), axis=1)
