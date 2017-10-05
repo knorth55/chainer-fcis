@@ -61,6 +61,7 @@ def main():
         # RPN
         elif name.startswith('rpn'):
             _, layer_name, _, data_type = name.split('_')
+            v = value.asnumpy()
             if layer_name == 'conv':
                 layer = model.rpn.conv1
             elif layer_name == 'cls':
@@ -69,11 +70,27 @@ def main():
                 layer = model.rpn.loc
 
             if data_type == 'weight':
-                assert layer.W.data.shape == value.asnumpy().shape, name
-                layer.W.data = value.asnumpy()
+                assert layer.W.data.shape == v.shape, name
+                if layer_name == 'cls':
+                    v = v.reshape((2, -1, 512, 1, 1))
+                    v = v.transpose((1, 0, 2, 3, 4))
+                    v = v.reshape((-1, 512, 1, 1))
+                elif layer_name == 'bbox':
+                    v = v.reshape((-1, 4, 512, 1, 1))
+                    v = v[:, [1, 0, 3, 2]]
+                    v = v.reshape((-1, 512, 1, 1))
+                layer.W.data = v
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.asnumpy().shape, name
-                layer.b.data = value.asnumpy()
+                assert layer.b.data.shape == v.shape, name
+                if layer_name == 'cls':
+                    v = v.reshape((2, -1))
+                    v = v.transpose((1, 0))
+                    v = v.reshape((-1,))
+                elif layer_name == 'bbox':
+                    v = v.reshape((-1, 4))
+                    v = v[:, [1, 0, 3, 2]]
+                    v = v.reshape((-1,))
+                layer.b.data = v
         # psroi_conv1
         elif name.startswith('conv_new'):
             data_type = name.split('_')[3]
