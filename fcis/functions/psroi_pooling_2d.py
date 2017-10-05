@@ -92,11 +92,13 @@ class PSROIPooling2D(function.Function):
             bool is_empty = (hend <= hstart) || (wend <= wstart);
 
             // Compute c at bottom
-            int gw = floor(static_cast<float>(pw)* group_size / pooled_width);
-            int gh = floor(static_cast<float>(ph)* group_size / pooled_height);
+            int gw = floor(
+                static_cast<float>(pw) * group_size / pooled_width);
+            int gh = floor(
+                static_cast<float>(ph) * group_size / pooled_height);
             gw = min(max(gw, 0), group_size - 1);
             gh = min(max(gh, 0), group_size - 1);
-            int c = (ctop*group_size + gh)*group_size + gw;
+            int c = (ctop * group_size + gh) * group_size + gw;
 
             int data_offset = (roi_batch_ind * channels + c) * height * width;
             float out_sum = 0;
@@ -107,8 +109,8 @@ class PSROIPooling2D(function.Function):
               }
             }
 
-            float bin_area = (hend - hstart)*(wend - wstart);
-            top_data = is_empty? 0. : out_sum/bin_area;
+            float bin_area = (hend - hstart) * (wend - wstart);
+            top_data = is_empty? (float) 0. : out_sum / bin_area;
             ''', 'psroi_pooling_2d_fwd'
         )(bottom_data, self.spatial_scale, channels, height, width,
           self.outh, self.outw,  self.group_size, self.output_dim,
@@ -157,9 +159,9 @@ class PSROIPooling2D(function.Function):
             float bin_size_w = roi_width / static_cast<float>(pooled_width);
 
             int hstart = floor(
-                static_cast<float>(ph)* bin_size_h + roi_start_h);
+                static_cast<float>(ph) * bin_size_h + roi_start_h);
             int wstart = floor(
-                static_cast<float>(pw)* bin_size_w + roi_start_w);
+                static_cast<float>(pw) * bin_size_w + roi_start_w);
             int hend = ceil(
                 static_cast<float>(ph + 1.) * bin_size_h + roi_start_h);
             int wend = ceil(
@@ -173,18 +175,20 @@ class PSROIPooling2D(function.Function):
             bool is_empty = (hend <= hstart) || (wend <= wstart);
 
             // Compute c at bottom
-            int gw = floor(static_cast<float>(pw)* group_size / pooled_width);
-            int gh = floor(static_cast<float>(ph)* group_size / pooled_height);
+            int gw = floor(
+                static_cast<float>(pw) * group_size / pooled_width);
+            int gh = floor(
+                static_cast<float>(ph) * group_size / pooled_height);
             gw = min(max(gw, 0), group_size - 1);
             gh = min(max(gh, 0), group_size - 1);
-            int c = (ctop*group_size + gh)*group_size + gw;
+            int c = (ctop * group_size + gh) * group_size + gw;
 
             int data_offset = (roi_batch_ind * channels + c) * height * width;
             float bin_area = (hend - hstart)*(wend - wstart);
             float diff_val = is_empty ? (float)0. : top_diff[i] / bin_area;
             for (int h = hstart; h < hend; ++h){
               for (int w = wstart; w < wend; ++w){
-                int bottom_index = h*width + w;
+                int bottom_index = h * width + w;
                 atomicAdd(&bottom_diff[data_offset + bottom_index], diff_val);
               }
             }
