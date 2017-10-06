@@ -7,6 +7,8 @@ from chainercv.utils import non_maximum_suppression
 import cupy
 import cv2
 import fcis
+import fcn
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import os.path as osp
@@ -113,6 +115,7 @@ def main():
             bboxes.append(bbox)
             cls_probs.append(roi_cls_probs_l[keep])
 
+        voted_cls_probs = []
         voted_masks = []
         voted_bboxes = []
         for l in range(0, n_class - 1):
@@ -134,10 +137,17 @@ def main():
 
             cls_probs_l = cls_probs[l]
             score_thresh_mask = cls_probs_l > score_thresh
+            voted_cls_probs_l = cls_probs_l[score_thresh_mask]
             voted_mask = voted_mask[score_thresh_mask]
             voted_bbox = voted_bbox[score_thresh_mask]
+            voted_cls_probs.append(voted_cls_probs_l)
             voted_masks.append(voted_mask)
             voted_bboxes.append(voted_bbox)
+            if voted_mask.shape[0] > 0:
+                print('detected: {}'.format(label_names[l]))
+                print('detected num: {}'.format(voted_mask.shape[0]))
+        visualize(img[:, :, ::-1], voted_bboxes, voted_masks, voted_cls_probs,
+                  label_names, binary_thresh)
 
 
 def mask_aggregation(
@@ -164,9 +174,46 @@ def mask_aggregation(
         max_y = y_idx.max()
         max_x = x_idx.max()
 
-    clipped_mask = mask[min_y:max_y+1, min_x:max_x+1]
+    clipped_mask = mask[min_y:max_y + 1, min_x:max_x + 1]
     clipped_bbox = np.array((min_y, min_x, max_y, max_x), dtype=np.float32)
     return clipped_mask, clipped_bbox
+
+
+def visualize(img, bboxes, masks, scores,
+              label_names, binary_thresh, alpha=0.7):
+
+    viz_img = img.copy()
+    viz_img = viz_img.astype(np.float)
+    plt.cla()
+    plt.axis("off")
+    n_bboxes = sum([len(bbox_l) for bbox_l in bboxes])
+    cmap = fcn.utils.label_colormap(n_bboxes)
+    cmap_id = 0
+    for l, name in enumerate(label_names):
+        bbox_l = bboxes[l]
+        mask_l = masks[l]
+        score_l = scores[l]
+        for bbox, mask, score in zip(bbox_l, mask_l, score_l):
+            color = cmap[cmap_id]
+            cmap_id += 1
+            color_uint8 = color * 255.0
+            bbox = bbox.astype(np.int32)
+            y_min, x_min, y_max, x_max = bbox
+            if y_max > y_min and x_max > x_min:
+                mask = cv2.resize(mask, (x_max - x_min, y_max - y_min))
+                mask = (mask >= binary_thresh).astype(np.int32)
+                mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
+                colored_mask = alpha * mask * color_uint8
+                sub_img = alpha * mask * viz_img[y_min:y_max, x_min:x_max, :]
+                viz_img[y_min:y_max, x_min:x_max, :] += colored_mask
+                viz_img[y_min:y_max, x_min:x_max, :] -= sub_img
+            plt.gca().text((x_max + x_min) / 2, y_min,
+                           '{:s} {:.3f}'.format(name, score),
+                           bbox={'facecolor': color, 'alpha': 0.9},
+                           fontsize=8, color='white')
+    viz_img = viz_img.astype(np.uint8)
+    plt.imshow(viz_img)
+    plt.show()
 
 
 if __name__ == '__main__':
