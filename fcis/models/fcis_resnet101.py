@@ -98,7 +98,7 @@ class FCISResNet101(chainer.Chain):
         self.psroi_conv3_h = h_locs
 
         roi_locs, roi_cls_probs, roi_seg_probs = self._pool_and_predict(
-            indices_and_rois, h_seg, h_locs, True)
+            indices_and_rois, h_seg, h_locs)
 
         # Iter2
         roi_locs = roi_locs.data
