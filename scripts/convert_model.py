@@ -116,9 +116,15 @@ def main():
             data_type = name.split('_')[2]
             layer = model.psroi_conv3
             if data_type == 'weight':
+                value = value.reshape((2, 4, 7*7, 1024, 1, 1))
+                value = value[:, [1, 0, 3, 2]]
+                value = value.reshape((-1, 1024, 1, 1))
                 assert layer.W.data.shape == value.shape, name
                 layer.W.data = value
             elif data_type == 'bias':
+                value = value.reshape((2, 4, 7*7))
+                value = value[:, [1, 0, 3, 2]]
+                value = value.reshape((-1,))
                 assert layer.b.data.shape == value.shape, name
                 layer.b.data = value
         else:
