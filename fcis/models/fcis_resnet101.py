@@ -102,7 +102,8 @@ class FCISResNet101(chainer.Chain):
 
         # Iter2
         roi_locs = roi_locs.data
-        roi_locs = roi_locs[:, 4:]
+        roi_locs = roi_locs.reshape((-1, 2, 4))
+        roi_locs = roi_locs[:, 1, :]
         mean = self.xp.array(self.loc_normalize_mean)
         std = self.xp.array(self.loc_normalize_std)
         roi_locs = roi_locs * std + mean
