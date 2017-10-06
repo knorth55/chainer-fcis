@@ -70,7 +70,6 @@ def main():
                 layer = model.rpn.loc
 
             if data_type == 'weight':
-                assert layer.W.data.shape == value.shape, name
                 if layer_name == 'cls':
                     value = value.reshape((2, -1, 512, 1, 1))
                     value = value.transpose((1, 0, 2, 3, 4))
@@ -79,9 +78,9 @@ def main():
                     value = value.reshape((-1, 4, 512, 1, 1))
                     value = value[:, [1, 0, 3, 2]]
                     value = value.reshape((-1, 512, 1, 1))
+                assert layer.W.data.shape == value.shape, name
                 layer.W.data = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.shape, name
                 if layer_name == 'cls':
                     value = value.reshape((2, -1))
                     value = value.transpose((1, 0))
@@ -90,6 +89,7 @@ def main():
                     value = value.reshape((-1, 4))
                     value = value[:, [1, 0, 3, 2]]
                     value = value.reshape((-1,))
+                assert layer.b.data.shape == value.shape, name
                 layer.b.data = value
         # psroi_conv1
         elif name.startswith('conv_new'):
