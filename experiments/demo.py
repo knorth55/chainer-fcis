@@ -32,7 +32,7 @@ def main():
     with open(cfgpath, 'r') as f:
         config = yaml.load(f)
 
-    n_class = config['n_class']
+    label_yamlpath = config['label_yaml']
     target_height = config['target_height']
     max_width = config['max_width']
     score_thresh = config['score_thresh']
@@ -40,6 +40,11 @@ def main():
     mask_merge_thresh = config['mask_merge_thresh']
     binary_thresh = config['binary_thresh']
 
+    label_yamlpath = osp.join(filepath, 'cfg', label_yamlpath)
+    with open(label_yamlpath, 'r') as f:
+        label_names = yaml.load(f)
+
+    n_class = len(label_names) + 1
     model = fcis.models.FCISResNet101(n_class)
     modelpath = osp.join(filepath, '../models/fcis_coco.npz')
     chainer.serializers.load_npz(modelpath, model)
