@@ -59,17 +59,17 @@ def main():
     for image_name in image_names:
         imagepath = osp.join(imagedir, image_name)
         print('image: {}'.format(imagepath))
-        img = cv2.imread(
+        orig_img = cv2.imread(
             imagepath, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
-        H, W, _ = img.shape
-        resize_scale = target_height / float(H)
-        if W * resize_scale > max_width:
-            resize_scale = max_width / float(W)
+        orig_H, orig_W, _ = orig_img.shape
+        resize_scale = target_height / float(orig_H)
+        if orig_W * resize_scale > max_width:
+            resize_scale = max_width / float(orig_W)
         img = cv2.resize(
-            img, None, None,
+            orig_img, None, None,
             fx=resize_scale, fy=resize_scale,
             interpolation=cv2.INTER_LINEAR)
-        scale = img.shape[1] / float(W)
+        scale = img.shape[1] / float(orig_W)
 
         # inference
         x_data = img.copy()
@@ -90,8 +90,8 @@ def main():
         roi_mask_probs = roi_seg_probs[:, 1, :, :]
 
         # shape: (n_rois, 4)
-        rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, H)
-        rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, W)
+        rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, orig_H)
+        rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, orig_W)
 
         # voting
         # cpu voting is only implemented
@@ -131,7 +131,8 @@ def main():
                 mask_probs_l = [roi_mask_probs[j] for j in idx.tolist()]
                 rois_l = rois[idx]
                 orig_mask, voted_bbox[i] = mask_aggregation(
-                    rois_l, mask_probs_l, mask_weights, H, W, binary_thresh)
+                    rois_l, mask_probs_l, mask_weights,
+                    orig_H, orig_W, binary_thresh)
                 voted_mask[i] = cv2.resize(
                     orig_mask.astype(np.float32), (mask_size, mask_size))
 
@@ -146,8 +147,8 @@ def main():
             if voted_mask.shape[0] > 0:
                 print('detected: {}'.format(label_names[l]))
                 print('detected num: {}'.format(voted_mask.shape[0]))
-        visualize(img[:, :, ::-1], voted_bboxes, voted_masks, voted_cls_probs,
-                  label_names, binary_thresh)
+        visualize(orig_img[:, :, ::-1], voted_bboxes, voted_masks,
+                  voted_cls_probs, label_names, binary_thresh)
 
 
 def mask_aggregation(
