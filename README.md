@@ -14,13 +14,12 @@ Requirement
 - NumPy
 - OpenCV2
 
-Installation
+Notification
 ------------
-
-# Attention
-
 Only GPU implementation, No CPU implementation yet.
 
+Installation
+------------
 
 ```bash
 git clone https://github.com/knorth55/chainer-fcis.git 
