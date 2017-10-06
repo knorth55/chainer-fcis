@@ -31,10 +31,14 @@ pip install -e .
 Inference
 ---------
 
+Pretrained models can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).
+
 Inference can be done as below;
 
 ```bash
 cd examples/coco/
+mkdir models/
+# Download pretrained model in models/
 python demo.py
 ```
 
