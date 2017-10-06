@@ -45,7 +45,7 @@ def main():
 
     n_class = len(label_names) + 1
     model = fcis.models.FCISResNet101(n_class)
-    modelpath = osp.join(filepath, '../models/fcis_coco.npz')
+    modelpath = osp.join(filepath, 'models/fcis_coco.npz')
     chainer.serializers.load_npz(modelpath, model)
     model.to_gpu(gpu)
 
