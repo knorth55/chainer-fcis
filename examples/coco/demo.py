@@ -54,7 +54,6 @@ def main():
 
     imagedir = osp.join(filepath, 'images')
     image_names = sorted(os.listdir(imagedir))
-    # image_names = ['COCO_test2015_000000000275.jpg']
 
     for image_name in image_names:
         imagepath = osp.join(imagedir, image_name)
