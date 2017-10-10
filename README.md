@@ -4,7 +4,7 @@ chainer-fcis - FCIS
 
 This is [Chainer](https://github.com/chainer/chainer) implementation of [Fully Convolutional Instance-aware Semantic Segmentation](https://arxiv.org/abs/1611.07709).
 
-Original repository is [msracver/FCIS](https://github.com/msracver/FCIS).
+Original Mxnet repository is [msracver/FCIS](https://github.com/msracver/FCIS).
 
 Requirement
 -----------
