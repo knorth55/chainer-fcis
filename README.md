@@ -36,8 +36,7 @@ Inference can be done as below;
 
 ```bash
 cd examples/coco/
-mkdir models/
-# Download pretrained model in models/
+# Pretrained models will be downloaded in ~/data/models/chainer
 python demo.py
 ```
 
