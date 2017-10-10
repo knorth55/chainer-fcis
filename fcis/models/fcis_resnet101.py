@@ -10,12 +10,16 @@ from fcis.models.resnet101 import ResNet101C2
 from fcis.models.resnet101 import ResNet101C3
 from fcis.models.resnet101 import ResNet101C4
 from fcis.models.resnet101 import ResNet101C5
+import fcn
 import numpy as np
+import os.path as osp
 
 
 class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
+    pretrained_model = osp.expanduser(
+        '~/data/models/chainer/fcis_coco.npz')
 
     def __init__(
             self, n_class, ratios=[0.5, 1, 2],
@@ -172,6 +176,14 @@ class FCISResNet101(chainer.Chain):
         roi_seg_probs = roi_seg_probs[np.arange(len(max_cls_idx)), max_cls_idx]
 
         return roi_locs, roi_cls_probs, roi_seg_probs
+
+    @classmethod
+    def download(cls):
+        return fcn.data.cached_download(
+            url='https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M',  # NOQA
+            path=cls.pretrained_model,
+            md5='dd616fc9f9fa1b28847b384b5abef3b9',
+        )
 
 
 def _psroi_pooling_2d_yx(
