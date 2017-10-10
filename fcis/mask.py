@@ -71,7 +71,7 @@ def mask_voting(
         for i, bbox in enumerate(bboxes[l]):
             iou = bbox_iou(rois, bbox[np.newaxis, :])
             idx = np.where(iou > mask_merge_thresh)[0]
-            mask_weights = roi_cls_probs[idx, l]
+            mask_weights = roi_cls_probs[idx, l + 1]
             mask_weights = mask_weights / mask_weights.sum()
             mask_probs_l = [roi_mask_probs[j] for j in idx.tolist()]
             rois_l = rois[idx]
