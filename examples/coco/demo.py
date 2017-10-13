@@ -75,7 +75,6 @@ def main():
         x_data = img.copy()
         x_data = x_data.astype(np.float32)
         x_data -= mean_bgr
-        x_data = x_data[:, :, ::-1]  # BGR -> RGB
         x_data = x_data.transpose((2, 0, 1))  # H, W, C -> C, H, W
         x = chainer.Variable(np.array([x_data], dtype=np.float32))
         x.to_gpu(gpu)

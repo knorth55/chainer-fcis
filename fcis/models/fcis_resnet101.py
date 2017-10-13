@@ -182,7 +182,7 @@ class FCISResNet101(chainer.Chain):
         return fcn.data.cached_download(
             url='https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M',  # NOQA
             path=cls.pretrained_model,
-            md5='dd616fc9f9fa1b28847b384b5abef3b9',
+            md5='689f9f01e7ee37f591b218e49c6686fb',
         )
 
 
