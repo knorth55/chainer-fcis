@@ -7,7 +7,7 @@ import chainer
 
 from chainercv import utils
 
-from chainercv.datasets.coco.coco_utils import get_coco
+from fcis.datasets.coco_utils import get_coco
 
 try:
     from pycocotools import mask as coco_mask
