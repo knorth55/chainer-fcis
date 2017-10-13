@@ -19,7 +19,7 @@ mean_bgr = np.array([103.06, 115.90, 123.15])
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0)
-    parser.add_argument('--model-file', default=None)
+    parser.add_argument('-m', '--modelpath', default=None)
     args = parser.parse_args()
 
     # chainer config for demo
@@ -47,7 +47,8 @@ def main():
     n_class = len(label_names) + 1
     model = fcis.models.FCISResNet101(n_class)
 
-    if args.model_file is None:
+    modelpath = args.modelpath
+    if modelpath is None:
         modelpath = model.download()
     chainer.serializers.load_npz(modelpath, model)
     model.to_gpu(gpu)
