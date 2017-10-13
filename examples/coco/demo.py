@@ -98,12 +98,12 @@ def main():
         roi_cls_probs = chainer.cuda.to_cpu(roi_cls_probs)
         roi_mask_probs = chainer.cuda.to_cpu(roi_mask_probs)
 
-        v_masks, v_bboxes, v_cls_probs = fcis.mask.mask_voting(
+        v_labels, v_masks, v_bboxes, v_cls_probs = fcis.mask.mask_voting(
             rois, roi_cls_probs, roi_mask_probs, n_class, orig_H, orig_W,
             score_thresh, nms_thresh, mask_merge_thresh, binary_thresh)
 
         fcis.utils.visualize_mask(
-            orig_img[:, :, ::-1], v_masks, v_bboxes,
+            orig_img[:, :, ::-1], v_labels, v_masks, v_bboxes,
             v_cls_probs, label_names, binary_thresh)
         plt.show()
 

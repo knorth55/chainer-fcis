@@ -37,55 +37,53 @@ def mask_aggregation(
 
 
 def mask_voting(
-        rois, roi_cls_probs, roi_mask_probs,
+        rois, cls_probs, mask_probs,
         n_class, H, W,
         score_thresh=0.7,
         nms_thresh=0.3,
         mask_merge_thresh=0.5,
         binary_thresh=0.4):
 
-    cls_probs = []
-    bboxes = []
-    mask_size = roi_mask_probs.shape[-1]
+    mask_size = mask_probs.shape[-1]
+    v_labels = np.empty((0, ), dtype=np.int32)
+    v_masks = np.empty((0, mask_size, mask_size), dtype=np.float32)
+    v_bboxes = np.empty((0, 4), dtype=np.float32)
+    v_cls_probs = np.empty((0, ), dtype=np.float32)
 
-    for l in range(1, n_class):
-        # shape: (n_rois,)
-        roi_cls_probs_l = roi_cls_probs[:, l]
-        thresh_mask = roi_cls_probs_l >= 0.001
-        rois_l = rois[thresh_mask]
-        roi_cls_probs_l = roi_cls_probs_l[thresh_mask]
-        keep = non_maximum_suppression(
-            rois_l, nms_thresh, roi_cls_probs_l, limit=100)
-        bbox = rois_l[keep]
-        bboxes.append(bbox)
-        cls_probs.append(roi_cls_probs_l[keep])
-
-    voted_cls_probs = []
-    voted_masks = []
-    voted_bboxes = []
     for l in range(0, n_class - 1):
-        n_bboxes = len(bboxes[l])
-        voted_mask = np.zeros((n_bboxes, mask_size, mask_size))
-        voted_bbox = np.zeros((n_bboxes, 4))
+        # non maximum suppression
+        cls_prob_l = cls_probs[:, l+1]
+        thresh_mask = cls_prob_l >= 0.001
+        bbox_l = rois[thresh_mask]
+        cls_prob_l = cls_prob_l[thresh_mask]
+        keep = non_maximum_suppression(
+            bbox_l, nms_thresh, cls_prob_l, limit=100)
+        bbox_l = bbox_l[keep]
+        cls_prob_l = cls_prob_l[keep]
 
-        for i, bbox in enumerate(bboxes[l]):
+        n_bbox_l = len(bbox_l)
+        v_mask_l = np.zeros((n_bbox_l, mask_size, mask_size))
+        v_bbox_l = np.zeros((n_bbox_l, 4))
+
+        for i, bbox in enumerate(bbox_l):
             iou = bbox_iou(rois, bbox[np.newaxis, :])
             idx = np.where(iou > mask_merge_thresh)[0]
-            mask_weights = roi_cls_probs[idx, l + 1]
+            mask_weights = cls_probs[idx, l + 1]
             mask_weights = mask_weights / mask_weights.sum()
-            mask_probs_l = [roi_mask_probs[j] for j in idx.tolist()]
+            mask_prob_l = mask_probs[idx]
             rois_l = rois[idx]
-            orig_mask, voted_bbox[i] = mask_aggregation(
-                rois_l, mask_probs_l, mask_weights, H, W, binary_thresh)
-            voted_mask[i] = cv2.resize(
+            orig_mask, v_bbox_l[i] = mask_aggregation(
+                rois_l, mask_prob_l, mask_weights, H, W, binary_thresh)
+            v_mask_l[i] = cv2.resize(
                 orig_mask.astype(np.float32), (mask_size, mask_size))
 
-        cls_probs_l = cls_probs[l]
-        score_thresh_mask = cls_probs_l > score_thresh
-        voted_cls_probs_l = cls_probs_l[score_thresh_mask]
-        voted_mask = voted_mask[score_thresh_mask]
-        voted_bbox = voted_bbox[score_thresh_mask]
-        voted_cls_probs.append(voted_cls_probs_l)
-        voted_masks.append(voted_mask)
-        voted_bboxes.append(voted_bbox)
-    return voted_masks, voted_bboxes, voted_cls_probs
+        score_thresh_mask = cls_prob_l > score_thresh
+        v_cls_prob_l = cls_prob_l[score_thresh_mask]
+        v_mask_l = v_mask_l[score_thresh_mask]
+        v_bbox_l = v_bbox_l[score_thresh_mask]
+        v_label_l = np.repeat(l, v_bbox_l.shape[0])
+        v_cls_probs = np.concatenate((v_cls_probs, v_cls_prob_l))
+        v_masks = np.concatenate((v_masks, v_mask_l))
+        v_bboxes = np.concatenate((v_bboxes, v_bbox_l))
+        v_labels = np.concatenate((v_labels, v_label_l))
+    return v_labels, v_masks, v_bboxes, v_cls_probs
