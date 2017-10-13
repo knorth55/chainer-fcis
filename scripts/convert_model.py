@@ -39,6 +39,7 @@ def main():
         value = value.asnumpy()
         # ResNetC1
         if name.startswith('conv1'):
+            value = value[:, ::-1, :, :]
             assert model.res1.conv1.W.data.shape == value.shape, name
             model.res1.conv1.W.data = value
         # ResNetC2-5
