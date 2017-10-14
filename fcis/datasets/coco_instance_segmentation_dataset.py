@@ -84,12 +84,12 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         label = np.array([self.cat_ids.index(ann['category_id'])
                           for ann in annotation], dtype=np.int32)
 
-        mask = [self._segm_to_mask(anno['segmentation'], (H, W))
-                for anno in annotation]
-        if len(mask) > 0:
-            mask = np.stack(mask).astype(np.bool)
-        else:
-            mask = np.zeros((0, H, W), dtype=np.bool)
+        mask = list()
+        for anno, bb in zip(annotation, bbox):
+            m = self._segm_to_mask(anno['segmentation'], (H, W))
+            bb = bb.astype(np.int32)
+            m = m[bb[0]:bb[2], bb[1]:bb[3]]
+            mask.append(m)
 
         crowded = np.array([ann['iscrowd']
                             for ann in annotation], dtype=np.bool)
@@ -107,7 +107,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         bbox = bbox[keep_mask]
         label = label[keep_mask]
         crowded = crowded[keep_mask]
-        mask = mask[keep_mask]
+        mask = _index_list_by_mask(mask, keep_mask)
         return bbox, label, mask, crowded
 
     def _segm_to_mask(self, segm, size):
@@ -123,7 +123,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         else:
             rle = segm
         mask = coco_mask.decode(rle)
-        return mask
+        return mask.astype(np.bool)
 
     def __len__(self):
         return len(self.ids)
@@ -140,9 +140,15 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         if not self.use_crowded:
             bbox = bbox[np.logical_not(crowded)]
             label = label[np.logical_not(crowded)]
-            mask = mask[np.logical_not(crowded)]
+            mask = _index_list_by_mask(mask, np.logical_not(crowded))
             crowded = crowded[np.logical_not(crowded)]
 
         if self.return_crowded:
             return img, bbox, label, mask, crowded
         return img, bbox, label, mask
+
+
+def _index_list_by_mask(l, mask):
+    indices = np.where(mask)[0]
+    l = [l[idx] for idx in indices]
+    return l
