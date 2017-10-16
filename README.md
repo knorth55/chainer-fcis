@@ -9,10 +9,15 @@ Original Mxnet repository is [msracver/FCIS](https://github.com/msracver/FCIS).
 Requirement
 -----------
 
-- Chainer
-- ChainerCV
+- [Chainer](https://github.com/chainer/chainer)
+- [ChainerCV](https://github.com/chainer/chainercv)
 - NumPy
 - OpenCV2
+
+Additional Requirement
+----------------------
+- For COCO Dataset class
+  - [pycocotools](https://github.com/cocodataset/cocoapi)
 
 Notification
 ------------
