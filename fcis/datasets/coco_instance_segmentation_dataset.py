@@ -23,8 +23,9 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
                  use_crowded=False, return_crowded=False):
         if not _availabel:
             raise ValueError(
-                'Please install pycocotools \n'
-                'pip install -e \'git+https://github.com/pdollar/coco.git'
+                'Please install pycocotools\n'
+                'pip install -e'
+                '\'git+https://github.com/cocodataset/cocoapi.git'
                 '#egg=pycocotools&subdirectory=PythonAPI\'')
 
         self.use_crowded = use_crowded
