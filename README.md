@@ -17,6 +17,7 @@ Requirement
 Additional Requirement
 ----------------------
 - For COCO Dataset class
+  - Cython
   - [pycocotools](https://github.com/cocodataset/cocoapi)
 
 Notification
