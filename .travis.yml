@@ -6,7 +6,7 @@ cache:
 
 matrix:
   include:
-    - os: linux 
+    - os: linux
       python: 2.7
 
 before_install:
@@ -20,6 +20,7 @@ before_install:
 install:
   - conda create --name=fcis python=$TRAVIS_PYTHON_VERSION -q -y
   - conda install -c menpo opencv
+  - pip install 'git+https://github.com/pdollar/coco.git#egg=pycocotools&subdirectory=PythonAPI'
   - pip install -e .
 
 before_script:
