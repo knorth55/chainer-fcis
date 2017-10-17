@@ -20,7 +20,8 @@ except ImportError:
 class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
     def __init__(self, data_dir='auto', split='train',
-                 use_crowded=False, return_crowded=False):
+                 use_crowded=False, return_crowded=False,
+                 return_area=False):
         if not _availabel:
             raise ValueError(
                 'Please install pycocotools\n'
@@ -30,6 +31,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
         self.use_crowded = use_crowded
         self.return_crowded = return_crowded
+        self.return_area = return_area
         if split in ['val', 'minival', 'valminusminival']:
             img_split = 'val'
         else:
@@ -93,21 +95,25 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         crowded = np.array([ann['iscrowd']
                             for ann in annotation], dtype=np.bool)
 
+        area = np.array([ann['area']
+                         for ann in annotation], dtype=np.float32)
+
         # Sanitize boxes using image shape
         bbox[:, :2] = np.maximum(bbox[:, :2], 0)
         bbox[:, 2] = np.minimum(bbox[:, 2], H)
         bbox[:, 3] = np.minimum(bbox[:, 3], W)
 
         # Remove invalid boxes
-        area = np.prod(bbox[:, 2:] - bbox[:, :2], axis=1)
+        bbox_area = np.prod(bbox[:, 2:] - bbox[:, :2], axis=1)
         keep_mask = np.logical_and(bbox[:, 0] <= bbox[:, 2],
                                    bbox[:, 1] <= bbox[:, 3])
-        keep_mask = np.logical_and(keep_mask, area > 0)
+        keep_mask = np.logical_and(keep_mask, bbox_area > 0)
         bbox = bbox[keep_mask]
         label = label[keep_mask]
         crowded = crowded[keep_mask]
         mask = _index_list_by_mask(mask, keep_mask)
-        return bbox, label, mask, crowded
+        area = area[keep_mask]
+        return bbox, label, mask, crowded, area
 
     def _segm_to_mask(self, segm, size):
         # Copied from pycocotools.coco.COCO.annToMask
@@ -134,17 +140,21 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
         _, H, W = img.shape
 
-        bbox, label, mask, crowded = self._get_annotations(i)
+        bbox, label, mask, crowded, area = self._get_annotations(i)
 
         if not self.use_crowded:
             bbox = bbox[np.logical_not(crowded)]
             label = label[np.logical_not(crowded)]
             mask = _index_list_by_mask(mask, np.logical_not(crowded))
+            area = area[np.logical_not(crowded)]
             crowded = crowded[np.logical_not(crowded)]
 
+        example = [img, bbox, label, mask]
         if self.return_crowded:
-            return img, bbox, label, mask, crowded
-        return img, bbox, label, mask
+            example += [crowded]
+        if self.return_area:
+            example += [area]
+        return tuple(example)
 
 
 def _index_list_by_mask(l, mask):
