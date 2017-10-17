@@ -94,9 +94,11 @@ class FCISResNet101(chainer.Chain):
             (roi_indices[:, None], rois), axis=1)
         self.rois1 = rois
 
+        # ResNet101C5 with dilated convolution
         h = self.res5(h)
         self.res5_h = h
 
+        # Convolution for PSROI pooling
         h = F.relu(self.psroi_conv1(h))
         self.psroi_conv1_h = h
         h_seg = self.psroi_conv2(h)
@@ -104,12 +106,14 @@ class FCISResNet101(chainer.Chain):
         h_locs = self.psroi_conv3(h)
         self.psroi_conv3_h = h_locs
 
+        # PSROI pooling and regression
         roi_seg_scores, roi_locs, roi_cls_scores = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
         roi_cls_probs = F.softmax(roi_cls_scores)
         roi_seg_probs = F.softmax(roi_seg_scores)
 
-        # Iter2
+        # 2nd Iteration
+        # get rois2 for more precise prediction
         roi_locs = roi_locs.data
         roi_locs = roi_locs.reshape((-1, 2, 4))
         roi_locs = roi_locs[:, 1, :]
@@ -123,6 +127,7 @@ class FCISResNet101(chainer.Chain):
 
         self.rois2 = rois2
 
+        # PSROI pooling and regression
         indices_and_rois2 = self.xp.concatenate(
             (roi_indices[:, None], rois2), axis=1)
         indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
@@ -131,6 +136,7 @@ class FCISResNet101(chainer.Chain):
         roi_cls_probs2 = F.softmax(roi_cls_scores2)
         roi_seg_probs2 = F.softmax(roi_seg_scores2)
 
+        # concat 1st and 2nd iteration results
         rois = self.xp.concatenate((rois, rois2))
         roi_indices = self.xp.concatenate((roi_indices, roi_indices))
         roi_cls_probs = self.xp.concatenate(
