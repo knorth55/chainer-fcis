@@ -1,5 +1,4 @@
 label_yaml: demo_labels.yaml
-n_class: 81
 target_height: 600
 max_width: 1000
 score_thresh: 0.7
