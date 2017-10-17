@@ -104,8 +104,10 @@ class FCISResNet101(chainer.Chain):
         h_locs = self.psroi_conv3(h)
         self.psroi_conv3_h = h_locs
 
-        roi_seg_probs, roi_locs, roi_cls_probs = self._pool_and_predict(
+        roi_seg_scores, roi_locs, roi_cls_scores = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
+        roi_cls_probs = F.softmax(roi_cls_scores)
+        roi_seg_probs = F.softmax(roi_seg_scores)
 
         # Iter2
         roi_locs = roi_locs.data
@@ -124,8 +126,10 @@ class FCISResNet101(chainer.Chain):
         indices_and_rois2 = self.xp.concatenate(
             (roi_indices[:, None], rois2), axis=1)
         indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
-        roi_seg_probs2, _, roi_cls_probs2 = self._pool_and_predict(
+        roi_seg_scores2, _, roi_cls_scores2 = self._pool_and_predict(
             indices_and_rois2, h_seg, h_locs)
+        roi_cls_probs2 = F.softmax(roi_cls_scores2)
+        roi_seg_probs2 = F.softmax(roi_seg_scores2)
 
         rois = self.xp.concatenate((rois, rois2))
         roi_indices = self.xp.concatenate((roi_indices, roi_indices))
@@ -164,7 +168,6 @@ class FCISResNet101(chainer.Chain):
         # Global pooling (vote)
         # shape: (n_rois, n_class)
         roi_cls_scores = F.average(h_cls, axis=(2, 3))
-        roi_cls_probs = F.softmax(roi_cls_scores)
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
@@ -172,13 +175,11 @@ class FCISResNet101(chainer.Chain):
 
         # Mask Regression
         # shape: (n_rois, n_class, 2, H, W)
-        roi_seg_probs = F.softmax(pool_seg, axis=2)
-
         # Group Pick by Score
-        max_cls_idx = roi_cls_probs.data.argmax(axis=1)
-        roi_seg_probs = roi_seg_probs[np.arange(len(max_cls_idx)), max_cls_idx]
+        max_cls_idx = roi_cls_scores.data.argmax(axis=1)
+        roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
 
-        return roi_seg_probs, roi_locs, roi_cls_probs
+        return roi_seg_scores, roi_locs, roi_cls_scores
 
     def prepare(self, img, target_height, max_width, gpu=0):
         resized_img = fcis.utils.resize_image(img, target_height, max_width)
