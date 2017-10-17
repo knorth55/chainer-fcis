@@ -4,6 +4,7 @@ import argparse
 import chainer
 import cupy
 import cv2
+from easydict import EasyDict
 import fcis
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,17 +31,17 @@ def main():
 
     cfgpath = osp.join(filepath, 'cfg', 'demo.yaml')
     with open(cfgpath, 'r') as f:
-        config = yaml.load(f)
+        config = EasyDict(yaml.load(f))
 
-    label_yamlpath = config['label_yaml']
-    target_height = config['target_height']
-    max_width = config['max_width']
-    score_thresh = config['score_thresh']
-    nms_thresh = config['nms_thresh']
-    mask_merge_thresh = config['mask_merge_thresh']
-    binary_thresh = config['binary_thresh']
+    # load config
+    target_height = config.target_height
+    max_width = config.max_width
+    score_thresh = config.score_thresh
+    nms_thresh = config.nms_thresh
+    mask_merge_thresh = config.mask_merge_thresh
+    binary_thresh = config.binary_thresh
 
-    label_yamlpath = osp.join(filepath, 'cfg', label_yamlpath)
+    label_yamlpath = osp.join(filepath, 'cfg', config.label_yaml)
     with open(label_yamlpath, 'r') as f:
         label_names = yaml.load(f)
 
