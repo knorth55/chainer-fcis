@@ -104,7 +104,7 @@ class FCISResNet101(chainer.Chain):
         h_locs = self.psroi_conv3(h)
         self.psroi_conv3_h = h_locs
 
-        roi_locs, roi_cls_probs, roi_seg_probs = self._pool_and_predict(
+        roi_seg_probs, roi_locs, roi_cls_probs = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
 
         # Iter2
@@ -124,7 +124,7 @@ class FCISResNet101(chainer.Chain):
         indices_and_rois2 = self.xp.concatenate(
             (roi_indices[:, None], rois2), axis=1)
         indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
-        _, roi_cls_probs2, roi_seg_probs2 = self._pool_and_predict(
+        roi_seg_probs2, _, roi_cls_probs2 = self._pool_and_predict(
             indices_and_rois2, h_seg, h_locs)
 
         rois = self.xp.concatenate((rois, rois2))
@@ -178,7 +178,7 @@ class FCISResNet101(chainer.Chain):
         max_cls_idx = roi_cls_probs.data.argmax(axis=1)
         roi_seg_probs = roi_seg_probs[np.arange(len(max_cls_idx)), max_cls_idx]
 
-        return roi_locs, roi_cls_probs, roi_seg_probs
+        return roi_seg_probs, roi_locs, roi_cls_probs
 
     def prepare(self, img, target_height, max_width, gpu=0):
         resized_img = fcis.utils.resize_image(img, target_height, max_width)
