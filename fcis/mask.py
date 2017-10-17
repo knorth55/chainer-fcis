@@ -37,7 +37,7 @@ def mask_aggregation(
 
 
 def mask_voting(
-        rois, cls_probs, mask_probs,
+        rois, mask_probs, cls_probs,
         n_class, H, W,
         score_thresh=0.7,
         nms_thresh=0.3,
@@ -78,12 +78,12 @@ def mask_voting(
                 clipped_mask.astype(np.float32), (mask_size, mask_size))
 
         score_thresh_mask = cls_prob_l > score_thresh
-        v_cls_prob_l = cls_prob_l[score_thresh_mask]
         v_mask_l = v_mask_l[score_thresh_mask]
         v_bbox_l = v_bbox_l[score_thresh_mask]
         v_label_l = np.repeat(l, v_bbox_l.shape[0])
-        v_cls_probs = np.concatenate((v_cls_probs, v_cls_prob_l))
+        v_cls_prob_l = cls_prob_l[score_thresh_mask]
         v_masks = np.concatenate((v_masks, v_mask_l))
         v_bboxes = np.concatenate((v_bboxes, v_bbox_l))
         v_labels = np.concatenate((v_labels, v_label_l))
-    return v_labels, v_masks, v_bboxes, v_cls_probs
+        v_cls_probs = np.concatenate((v_cls_probs, v_cls_prob_l))
+    return v_masks, v_bboxes, v_labels, v_cls_probs

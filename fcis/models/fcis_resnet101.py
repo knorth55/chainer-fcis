@@ -4,6 +4,7 @@ import chainer.links as L
 from chainercv.links.model.faster_rcnn.region_proposal_network import \
     RegionProposalNetwork
 from chainercv.links.model.faster_rcnn.utils.loc2bbox import loc2bbox
+import cupy
 import fcis.functions
 from fcis.models.resnet101 import ResNet101C1
 from fcis.models.resnet101 import ResNet101C2
@@ -15,14 +16,19 @@ import numpy as np
 import os.path as osp
 
 
+filepath = osp.abspath(osp.dirname(__file__))
+
+
 class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
+    mean_bgr = np.array([103.06, 115.90, 123.15])
     pretrained_model = osp.expanduser(
         '~/data/models/chainer/fcis_coco.npz')
 
     def __init__(
-            self, n_class, ratios=[0.5, 1, 2],
+            self, n_class,
+            ratios=[0.5, 1, 2],
             anchor_scales=[4, 8, 16, 32],
             n_train_pre_nms=6000, n_train_post_nms=300,
             n_test_pre_nms=6000, n_test_post_nms=300,
@@ -176,6 +182,67 @@ class FCISResNet101(chainer.Chain):
         roi_seg_probs = roi_seg_probs[np.arange(len(max_cls_idx)), max_cls_idx]
 
         return roi_locs, roi_cls_probs, roi_seg_probs
+
+    def prepare(self, img, target_height, max_width, gpu=0):
+        resized_img = fcis.utils.resize_image(img, target_height, max_width)
+        x_data = resized_img.copy()
+        x_data = x_data.astype(np.float32)
+        x_data -= self.mean_bgr
+        x_data = x_data.transpose((2, 0, 1))  # H, W, C -> C, H, W
+        x = chainer.Variable(np.array([x_data], dtype=np.float32))
+        x.to_gpu(gpu)
+        scale = resized_img.shape[0] / float(img.shape[0])
+        return x, scale
+
+    def predict(
+            self, orig_imgs, gpu=0,
+            target_height=600, max_width=1000,
+            score_thresh=0.7, nms_thresh=0.3,
+            mask_merge_thresh=0.5, binary_thresh=0.4):
+
+        masks = []
+        bboxes = []
+        labels = []
+        cls_probs = []
+
+        for orig_img in orig_imgs:
+            orig_H, orig_W, _ = orig_img.shape
+            x, scale = self.prepare(
+                orig_img, target_height, max_width, gpu=gpu)
+
+            # inference
+            self.__call__(x)
+
+            # assume that batch_size = 1
+            rois = self.rois
+            rois = rois / scale
+            roi_cls_probs = self.roi_cls_probs
+            roi_seg_probs = self.roi_seg_probs
+
+            # shape: (n_rois, H, W)
+            roi_mask_probs = roi_seg_probs[:, 1, :, :]
+
+            # shape: (n_rois, 4)
+            rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, orig_H)
+            rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, orig_W)
+
+            # voting
+            # cpu voting is only implemented
+            rois = chainer.cuda.to_cpu(rois)
+            roi_cls_probs = chainer.cuda.to_cpu(roi_cls_probs)
+            roi_mask_probs = chainer.cuda.to_cpu(roi_mask_probs)
+
+            mask_prob, bbox, label, cls_prob = fcis.mask.mask_voting(
+                rois, roi_mask_probs, roi_cls_probs, self.n_class,
+                orig_H, orig_W, score_thresh, nms_thresh, mask_merge_thresh,
+                binary_thresh)
+            mask = fcis.utils.mask_probs2mask(mask_prob, bbox, binary_thresh)
+            masks.append(mask)
+            bboxes.append(bbox)
+            labels.append(label)
+            cls_probs.append(cls_prob)
+
+        return masks, bboxes, labels, cls_probs
 
     @classmethod
     def download(cls):
