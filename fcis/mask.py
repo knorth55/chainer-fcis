@@ -72,10 +72,10 @@ def mask_voting(
             mask_weights = mask_weights / mask_weights.sum()
             mask_prob_l = mask_probs[idx]
             rois_l = rois[idx]
-            orig_mask, v_bbox_l[i] = mask_aggregation(
+            clipped_mask, v_bbox_l[i] = mask_aggregation(
                 rois_l, mask_prob_l, mask_weights, H, W, binary_thresh)
             v_mask_l[i] = cv2.resize(
-                orig_mask.astype(np.float32), (mask_size, mask_size))
+                clipped_mask.astype(np.float32), (mask_size, mask_size))
 
         score_thresh_mask = cls_prob_l > score_thresh
         v_cls_prob_l = cls_prob_l[score_thresh_mask]
