@@ -7,7 +7,7 @@ import chainer
 
 from chainercv import utils
 
-from fcis.datasets.coco_utils import get_coco
+from fcis.datasets.coco.coco_utils import get_coco
 from fcis.utils import whole_mask2mask
 
 try:
