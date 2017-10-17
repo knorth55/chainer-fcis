@@ -16,9 +16,6 @@ import numpy as np
 import os.path as osp
 
 
-filepath = osp.abspath(osp.dirname(__file__))
-
-
 class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
