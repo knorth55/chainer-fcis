@@ -197,7 +197,7 @@ class FCISResNet101(chainer.Chain):
 
         return roi_seg_scores, roi_locs, roi_cls_scores
 
-    def prepare(self, orig_img, target_height, max_width):
+    def prepare(self, orig_img, target_height=600, max_width=1000):
         img = orig_img.copy()
         img = fcis.utils.resize_image(img, target_height, max_width)
         img = img.astype(np.float32)
