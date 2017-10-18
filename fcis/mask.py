@@ -90,3 +90,25 @@ def mask_voting(
         v_labels = np.concatenate((v_labels, v_label_l))
         v_cls_probs = np.concatenate((v_cls_probs, v_cls_prob_l))
     return v_masks, v_bboxes, v_labels, v_cls_probs
+
+
+def intersect_bbox_mask(bbox, gt_bbox, gt_mask, mask_size=21):
+    min_y = max(bbox[0], gt_bbox[0])
+    min_x = max(bbox[1], gt_bbox[1])
+    max_y = min(bbox[2], gt_bbox[2])
+    max_x = min(bbox[3], gt_bbox[3])
+
+    if min_y > max_y or min_x > max_x:
+        return np.zeros((mask_size, mask_size))
+
+    h = max_y - min_y
+    w = max_x - min_x
+    start_y = min_y - bbox[0]
+    start_x = min_x - bbox[1]
+    end_y = start_y + h
+    end_x = start_x + w
+
+    gt_roi_mask = np.zeros((bbox[2] - bbox[0], bbox[2] - bbox[0]))
+    gt_clipped_mask = gt_mask[min_y:max_y, min_x:max_x]
+    gt_roi_mask[start_y:end_y, start_x:end_x] = gt_clipped_mask
+    return gt_roi_mask
