@@ -199,6 +199,7 @@ class FCISResNet101(chainer.Chain):
 
     def prepare(self, orig_img, target_height=600, max_width=1000):
         img = orig_img.copy()
+        img = img.transpose((1, 2, 0))  # C, H, W -> H, W, C
         img = fcis.utils.resize_image(img, target_height, max_width)
         img = img.astype(np.float32)
         img -= self.mean_bgr
@@ -217,7 +218,7 @@ class FCISResNet101(chainer.Chain):
         cls_probs = []
 
         for orig_img in orig_imgs:
-            orig_H, orig_W, _ = orig_img.shape
+            _, orig_H, orig_W = orig_img.shape
             img = self.prepare(
                 orig_img, target_height, max_width)
             img = img.astype(np.float32)

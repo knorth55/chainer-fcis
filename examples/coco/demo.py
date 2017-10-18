@@ -57,8 +57,10 @@ def main():
 
     for orig_img in orig_imgs:
         # prediction
+        # H, W, C -> C, H, W
         bboxes, masks, labels, cls_probs = model.predict(
-            [orig_img], target_height, max_width, score_thresh,
+            [orig_img.transpose((2, 0, 1))],
+            target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh)
 
         # batch size = 1
