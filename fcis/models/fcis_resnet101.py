@@ -275,6 +275,7 @@ class FCISResNet101(chainer.Chain):
             'res4': 23,
             'res5': 3
         }
+
         def copy_bottleneck(bottle, orig_bottle, n_conv):
             for i in range(0, n_conv):
                 conv_name = 'conv{}'.format(i + 1)
