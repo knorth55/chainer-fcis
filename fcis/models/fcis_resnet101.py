@@ -115,7 +115,6 @@ class FCISResNet101(chainer.Chain):
         # 2nd Iteration
         # get rois2 for more precise prediction
         roi_locs = roi_locs.data
-        roi_locs = roi_locs.reshape((-1, 2, 4))
         roi_locs = roi_locs[:, 1, :]
         mean = self.xp.array(self.loc_normalize_mean)
         std = self.xp.array(self.loc_normalize_std)
@@ -149,17 +148,18 @@ class FCISResNet101(chainer.Chain):
         self.roi_cls_probs = roi_cls_probs
         self.roi_seg_probs = roi_seg_probs
 
-    def _pool_and_predict(self, indices_and_rois, h_seg, h_locs):
+    def _pool_and_predict(
+            self, indices_and_rois, h_seg, h_locs, gt_roi_labels=None):
         # PSROI Pooling
-        # shape: (n_rois, n_class*2, H, W)
+        # shape: (n_rois, n_class*2, roi_size, roi_size)
         pool_seg = _psroi_pooling_2d_yx(
             h_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
-        # shape: (n_rois, n_class, 2, H, W)
+        # shape: (n_rois, n_class, 2, roi_size, roi_size)
         pool_seg = pool_seg.reshape(
             (-1, self.n_class, 2, self.roi_size, self.roi_size))
-        # shape: (n_rois, 2*4, H, W)
+        # shape: (n_rois, 2*4, roi_size, roi_size)
         pool_locs = _psroi_pooling_2d_yx(
             h_locs, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
@@ -167,7 +167,7 @@ class FCISResNet101(chainer.Chain):
 
         # Classfication
         # Group Max
-        # shape: (n_rois, n_class, H, W)
+        # shape: (n_rois, n_class, roi_size, roi_size)
         h_cls = F.max(pool_seg, axis=2)
 
         n_rois, n_class, _, _ = h_cls.shape
@@ -178,11 +178,16 @@ class FCISResNet101(chainer.Chain):
         # Bbox Regression
         # shape: (n_rois, 2*4)
         roi_locs = F.average(pool_locs, axis=(2, 3))
+        n_rois = roi_locs.shape[0]
+        roi_locs = roi_locs.reshape((n_rois, 2, 4))
 
         # Mask Regression
-        # shape: (n_rois, n_class, 2, H, W)
+        # shape: (n_rois, n_class, 2, roi_size, roi_size)
         # Group Pick by Score
-        max_cls_idx = roi_cls_scores.data.argmax(axis=1)
+        if gt_roi_labels is None:
+            max_cls_idx = roi_cls_scores.data.argmax(axis=1)
+        else:
+            max_cls_idx = gt_roi_labels
         roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
 
         return roi_seg_scores, roi_locs, roi_cls_scores
