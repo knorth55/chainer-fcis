@@ -33,7 +33,7 @@ def mask_aggregation(
     clipped_mask = mask[new_y_min:new_y_max, new_x_min:new_x_max]
     clipped_bbox = np.array([new_y_min, new_x_min, new_y_max, new_x_max],
                             dtype=np.float32)
-    return clipped_mask, clipped_bbox
+    return clipped_bbox, clipped_mask
 
 
 def mask_voting(
@@ -75,7 +75,7 @@ def mask_voting(
             mask_weights = mask_weights / mask_weights.sum()
             mask_prob_l = mask_probs[idx]
             rois_l = rois[idx]
-            clipped_mask, v_bbox_l[i] = mask_aggregation(
+            v_bbox_l[i], clipped_mask = mask_aggregation(
                 rois_l, mask_prob_l, mask_weights, H, W, binary_thresh)
             v_mask_l[i] = cv2.resize(
                 clipped_mask.astype(np.float32), (mask_size, mask_size))
@@ -89,7 +89,7 @@ def mask_voting(
         v_bboxes = np.concatenate((v_bboxes, v_bbox_l))
         v_labels = np.concatenate((v_labels, v_label_l))
         v_cls_probs = np.concatenate((v_cls_probs, v_cls_prob_l))
-    return v_masks, v_bboxes, v_labels, v_cls_probs
+    return v_bboxes, v_masks, v_labels, v_cls_probs
 
 
 def intersect_bbox_mask(bbox, gt_bbox, gt_mask, mask_size=21):

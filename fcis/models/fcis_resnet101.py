@@ -246,7 +246,7 @@ class FCISResNet101(chainer.Chain):
             roi_cls_probs = chainer.cuda.to_cpu(roi_cls_probs)
             roi_mask_probs = chainer.cuda.to_cpu(roi_mask_probs)
 
-            mask_prob, bbox, label, cls_prob = fcis.mask.mask_voting(
+            bbox, mask_prob, label, cls_prob = fcis.mask.mask_voting(
                 rois, roi_mask_probs, roi_cls_probs, self.n_class,
                 orig_H, orig_W, score_thresh, nms_thresh, mask_merge_thresh,
                 binary_thresh)
@@ -256,7 +256,7 @@ class FCISResNet101(chainer.Chain):
             labels.append(label)
             cls_probs.append(cls_prob)
 
-        return masks, bboxes, labels, cls_probs
+        return bboxes, masks, labels, cls_probs
 
     @classmethod
     def download(cls):

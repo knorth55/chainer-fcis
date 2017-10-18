@@ -29,7 +29,7 @@ class FCISTrainChain(chainer.Chain):
         self.loc_normalize_mean = fcis.loc_normalize_mean
         self.loc_normalize_std = fcis.loc_normalize_std
 
-    def __call__(self, x, masks, bboxes, labels, scale):
+    def __call__(self, x, bboxes, masks, labels, scale):
         if isinstance(bboxes, chainer.Variable):
             bboxes = bboxes.data
         if isinstance(masks, chainer.Variable):

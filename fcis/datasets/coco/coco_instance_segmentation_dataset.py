@@ -76,7 +76,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def labels(self):
         labels = list()
         for i in range(len(self)):
-            _, label, _, _ = self._get_annotations(i)
+            _, _, label, _ = self._get_annotations(i)
             labels.append(label)
         return labels
 
@@ -128,7 +128,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         crowded = crowded[keep_mask]
         mask = _index_list_by_mask(mask, keep_mask)
         area = area[keep_mask]
-        return bbox, label, mask, crowded, area
+        return bbox, mask, label, crowded, area
 
     def _segm_to_mask(self, segm, size):
         # Copied from pycocotools.coco.COCO.annToMask
@@ -155,7 +155,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
         _, H, W = img.shape
 
-        bbox, label, mask, crowded, area = self._get_annotations(i)
+        bbox, mask, label, crowded, area = self._get_annotations(i)
 
         if not self.use_crowded:
             bbox = bbox[np.logical_not(crowded)]
@@ -164,7 +164,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             area = area[np.logical_not(crowded)]
             crowded = crowded[np.logical_not(crowded)]
 
-        example = [img, bbox, label, mask]
+        example = [img, bbox, mask, label]
         if self.return_crowded:
             example += [crowded]
         if self.return_area:
@@ -172,7 +172,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         return tuple(example)
 
     def visualize(self, i):
-        img, bbox, label, mask = self.get_example(i)
+        img, bbox, mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
         scores = np.ones(len(label))
         visualize_mask(img, mask, bbox, label, scores, coco_label_names)
