@@ -8,8 +8,11 @@ import chainer
 
 from chainercv import utils
 
+from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco.coco_utils import get_coco
+from fcis.utils import visualize_mask
 from fcis.utils import whole_mask2mask
+import matplotlib.pyplot as plt
 
 try:
     from pycocotools import mask as coco_mask
@@ -163,6 +166,13 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         if self.return_area:
             example += [area]
         return tuple(example)
+
+    def visualize(self, i):
+        img, bbox, label, mask = self.get_example(i)
+        img = img.transpose(1, 2, 0)
+        scores = np.ones(len(label))
+        visualize_mask(img, mask, bbox, label, scores, coco_label_names)
+        plt.show()
 
 
 def _index_list_by_mask(l, mask):
