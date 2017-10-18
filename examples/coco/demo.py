@@ -2,7 +2,7 @@
 
 import argparse
 import chainer
-from easydict import EasyDict
+import easydict
 import fcis
 import matplotlib.pyplot as plt
 import os
@@ -28,7 +28,7 @@ def main():
     # load config
     cfgpath = osp.join(filepath, 'cfg', 'demo.yaml')
     with open(cfgpath, 'r') as f:
-        config = EasyDict(yaml.load(f))
+        config = easydict.EasyDict(yaml.load(f))
 
     target_height = config.target_height
     max_width = config.max_width
