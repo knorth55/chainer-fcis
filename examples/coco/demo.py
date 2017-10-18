@@ -41,7 +41,7 @@ def main():
     label_yamlpath = osp.join(filepath, 'cfg', config.label_yaml)
     with open(label_yamlpath, 'r') as f:
         label_names = yaml.load(f)
-    n_class = len(label_names) + 1
+    n_class = len(label_names)
 
     # load model
     model = fcis.models.FCISResNet101(n_class)
