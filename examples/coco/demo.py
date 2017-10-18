@@ -38,9 +38,7 @@ def main():
     binary_thresh = config.binary_thresh
 
     # load label_names
-    label_yamlpath = osp.join(filepath, 'cfg', config.label_yaml)
-    with open(label_yamlpath, 'r') as f:
-        label_names = yaml.load(f)
+    label_names = fcis.datasets.coco.coco_utils.coco_label_names
     n_class = len(label_names)
 
     # load model
