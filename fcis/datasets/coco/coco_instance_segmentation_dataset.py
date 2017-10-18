@@ -89,8 +89,9 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
                           for ann in annotation], dtype=np.int32)
 
         if len(bbox) > 0:
-            whole_mask = np.stack([self._segm_to_mask(anno['segmentation'], (H, W))
-                                   for anno in annotation])
+            whole_mask = np.stack(
+                [self._segm_to_mask(anno['segmentation'], (H, W))
+                 for anno in annotation])
         else:
             whole_mask = np.zeros((0, H, W), dtype=np.bool)
         mask = whole_mask2mask(whole_mask, bbox)
