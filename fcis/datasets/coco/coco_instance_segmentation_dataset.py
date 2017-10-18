@@ -40,11 +40,15 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             img_split = 'val'
         else:
             img_split = 'train'
+
         if data_dir is None:
             data_dir = osp.expanduser('~/data/datasets/coco')
-            data_dir = get_coco(split, img_split, data_dir)
         elif data_dir == 'auto':
             data_dir = get_coco(split, img_split)
+
+        if not osp.exists(data_dir):
+            raise ValueError(
+                'Please download coco2014 dataset first')
 
         self.img_root = os.path.join(
             data_dir, 'images', '{}2014'.format(img_split))
