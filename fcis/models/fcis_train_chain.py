@@ -104,6 +104,14 @@ class FCISTrainChain(chainer.Chain):
 
         # Total loss
         loss = rpn_loss + fcis_loss
+        chainer.reporter.report({
+            'loss': loss,
+            'rpn_loc_loss': rpn_loc_loss,
+            'rpn_cls_loss': rpn_cls_loss,
+            'fcis_loc_loss': fcis_loc_loss,
+            'fcis_cls_loss': fcis_cls_loss,
+            'fcis_mask_loss': fcis_mask_loss
+        }, self)
         return loss
 
 
