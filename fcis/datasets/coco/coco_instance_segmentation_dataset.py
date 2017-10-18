@@ -2,6 +2,7 @@ from collections import defaultdict
 import json
 import numpy as np
 import os
+import os.path as osp
 
 import chainer
 
@@ -19,7 +20,7 @@ except ImportError:
 
 class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
-    def __init__(self, data_dir='auto', split='train',
+    def __init__(self, data_dir=None, split='train',
                  use_crowded=False, return_crowded=False,
                  return_area=False):
         if not _availabel:
@@ -36,7 +37,10 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             img_split = 'val'
         else:
             img_split = 'train'
-        if data_dir == 'auto':
+        if data_dir is None:
+            data_dir = osp.expanduser('~/data/datasets/coco')
+            data_dir = get_coco(split, img_split, data_dir)
+        elif data_dir == 'auto':
             data_dir = get_coco(split, img_split)
 
         self.img_root = os.path.join(

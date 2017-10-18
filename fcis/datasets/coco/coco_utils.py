@@ -22,9 +22,10 @@ anno_urls = {
 }
 
 
-def get_coco(split, img_split):
+def get_coco(split, img_split, data_dir=None):
     url = img_urls[img_split]
-    data_dir = download.get_dataset_directory(root)
+    if data_dir is None:
+        data_dir = download.get_dataset_directory(root)
     img_root = os.path.join(data_dir, 'images')
     created_img_root = os.path.join(img_root, '{}2014'.format(img_split))
     annos_root = os.path.join(data_dir, 'annotations')
