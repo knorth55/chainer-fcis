@@ -5,7 +5,6 @@
 
 import chainer
 import chainer.functions as F
-from chainer import initializers
 import chainer.links as L
 
 
@@ -15,7 +14,7 @@ class BottleNeckA(chainer.Chain):
 
     def __init__(self, in_size, out_size, ch, stride=2):
         super(BottleNeckA, self).__init__()
-        initialW = initializers.HeNormal()
+        initialW = chainer.initializers.HeNormal()
 
         with self.init_scope():
             self.conv1 = L.Convolution2D(
@@ -48,7 +47,7 @@ class DilatedBottleNeckA(chainer.Chain):
 
     def __init__(self, in_size, out_size, ch, stride=1):
         super(DilatedBottleNeckA, self).__init__()
-        initialW = initializers.HeNormal()
+        initialW = chainer.initializers.HeNormal()
 
         with self.init_scope():
             self.conv1 = L.Convolution2D(
@@ -82,7 +81,7 @@ class BottleNeckB(chainer.Chain):
 
     def __init__(self, in_size, ch):
         super(BottleNeckB, self).__init__()
-        initialW = initializers.HeNormal()
+        initialW = chainer.initializers.HeNormal()
 
         with self.init_scope():
             self.conv1 = L.Convolution2D(
@@ -109,7 +108,7 @@ class DilatedBottleNeckB(chainer.Chain):
 
     def __init__(self, in_size, ch):
         super(DilatedBottleNeckB, self).__init__()
-        initialW = initializers.HeNormal()
+        initialW = chainer.initializers.HeNormal()
 
         with self.init_scope():
             self.conv1 = L.Convolution2D(
@@ -137,9 +136,11 @@ class ResNet101C1(chainer.Chain):
 
     def __init__(self):
         super(ResNet101C1, self).__init__()
+        initialW = chainer.initializers.HeNormal()
+
         with self.init_scope():
             self.conv1 = L.Convolution2D(
-                3, 64, 7, 2, 3, initialW=initializers.HeNormal(), nobias=True)
+                3, 64, 7, 2, 3, initialW=initialW, nobias=True)
             self.bn1 = L.BatchNormalization(64, eps=self.eps)
 
     def __call__(self, x):

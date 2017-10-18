@@ -52,6 +52,8 @@ class FCISResNet101(chainer.Chain):
         self.loc_normalize_mean = loc_normalize_mean
         self.loc_normalize_std = loc_normalize_std
 
+        initialW = chainer.initializers.Normal(0.01)
+
         with self.init_scope():
             # ResNet
             self.res1 = ResNet101C1()
@@ -66,15 +68,18 @@ class FCISResNet101(chainer.Chain):
                 ratios=ratios,
                 anchor_scales=anchor_scales,
                 feat_stride=self.feat_stride,
+                initialW=initialW,
                 proposal_creator_params=proposal_creator_params
             )
 
             # PSROI Pooling
-            self.psroi_conv1 = L.Convolution2D(2048, 1024, 1, 1, 0)
+            self.psroi_conv1 = L.Convolution2D(
+                2048, 1024, 1, 1, 0, initialW=initialW)
             self.psroi_conv2 = L.Convolution2D(
-                1024, group_size*group_size*self.n_class*2, 1, 1, 0)
+                1024, group_size*group_size*self.n_class*2, 1, 1, 0,
+                initialW=initialW)
             self.psroi_conv3 = L.Convolution2D(
-                1024, group_size*group_size*2*4, 1, 1, 0)
+                1024, group_size*group_size*2*4, 1, 1, 0, initialW=initialW)
 
     def __call__(self, x, scale=1.0):
         img_size = x.shape[2:]
