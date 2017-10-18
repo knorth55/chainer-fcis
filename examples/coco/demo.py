@@ -58,7 +58,7 @@ def main():
     for orig_img in orig_imgs:
         # prediction
         masks, bboxes, labels, cls_probs = model.predict(
-            [orig_img], gpu, target_height, max_width, score_thresh,
+            [orig_img], target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh)
 
         # batch size = 1

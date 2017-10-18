@@ -197,19 +197,16 @@ class FCISResNet101(chainer.Chain):
 
         return roi_seg_scores, roi_locs, roi_cls_scores
 
-    def prepare(self, img, target_height, max_width, gpu=0):
-        resized_img = fcis.utils.resize_image(img, target_height, max_width)
-        x_data = resized_img.copy()
-        x_data = x_data.astype(np.float32)
-        x_data -= self.mean_bgr
-        x_data = x_data.transpose((2, 0, 1))  # H, W, C -> C, H, W
-        x = chainer.Variable(np.array([x_data], dtype=np.float32))
-        x.to_gpu(gpu)
-        scale = resized_img.shape[0] / float(img.shape[0])
-        return x, scale
+    def prepare(self, orig_img, target_height, max_width):
+        img = orig_img.copy()
+        img = fcis.utils.resize_image(img, target_height, max_width)
+        img = img.astype(np.float32)
+        img -= self.mean_bgr
+        img = img.transpose((2, 0, 1))  # H, W, C -> C, H, W
+        return img
 
     def predict(
-            self, orig_imgs, gpu=0,
+            self, orig_imgs,
             target_height=600, max_width=1000,
             score_thresh=0.7, nms_thresh=0.3,
             mask_merge_thresh=0.5, binary_thresh=0.4):
@@ -221,11 +218,14 @@ class FCISResNet101(chainer.Chain):
 
         for orig_img in orig_imgs:
             orig_H, orig_W, _ = orig_img.shape
-            x, scale = self.prepare(
-                orig_img, target_height, max_width, gpu=gpu)
+            img = self.prepare(
+                orig_img, target_height, max_width)
+            img = img.astype(np.float32)
+            scale = img.shape[1] / float(orig_H)
+            x = chainer.Variable(self.xp.array(img[None]))
 
             # inference
-            self.__call__(x)
+            self.__call__(x, scale)
 
             # assume that batch_size = 1
             rois = self.rois
