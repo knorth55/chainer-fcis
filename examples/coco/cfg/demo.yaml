@@ -1,4 +1,3 @@
-label_yaml: demo_labels.yaml
 target_height: 600
 max_width: 1000
 score_thresh: 0.7
