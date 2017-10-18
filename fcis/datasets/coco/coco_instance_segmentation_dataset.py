@@ -153,6 +153,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img_fn = os.path.join(
             self.img_root, self.img_props[img_id]['file_name'])
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
+        img = img[::-1, :, :]  # RGB -> BGR
         _, H, W = img.shape
 
         bbox, mask, label, crowded, area = self._get_annotations(i)
@@ -174,6 +175,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def visualize(self, i):
         img, bbox, mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
+        img = img[:, :, ::-1]
         scores = np.ones(len(label))
         visualize_mask(img, mask, bbox, label, scores, coco_label_names)
         plt.show()
