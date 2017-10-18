@@ -24,7 +24,7 @@ class FCISResNet101(chainer.Chain):
         '~/data/models/chainer/fcis_coco.npz')
 
     def __init__(
-            self, n_class,
+            self, n_class=81,
             ratios=[0.5, 1, 2],
             anchor_scales=[4, 8, 16, 32],
             n_train_pre_nms=6000, n_train_post_nms=300,
