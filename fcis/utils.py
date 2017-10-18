@@ -20,7 +20,7 @@ def visualize_mask(
     for color, l, mask, bbox, cls_prob in zip(
             cmap, labels, masks, bboxes, cls_probs):
         color_uint8 = color * 255.0
-        bbox = bbox.astype(np.int32)
+        bbox = np.round(bbox).astype(np.int32)
         y_min, x_min, y_max, x_max = bbox
         if y_max > y_min and x_max > x_min:
             mask = mask.astype(np.int32)
