@@ -16,9 +16,9 @@ import matplotlib.pyplot as plt
 
 try:
     from pycocotools import mask as coco_mask
-    _availabel = True
+    _available = True
 except ImportError:
-    _availabel = False
+    _available = False
 
 
 class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
@@ -26,7 +26,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def __init__(self, data_dir=None, split='train',
                  use_crowded=False, return_crowded=False,
                  return_area=False):
-        if not _availabel:
+        if not _available:
             raise ValueError(
                 'Please install pycocotools\n'
                 'pip install -e'
