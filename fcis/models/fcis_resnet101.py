@@ -263,8 +263,41 @@ class FCISResNet101(chainer.Chain):
         return fcn.data.cached_download(
             url='https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M',  # NOQA
             path=cls.pretrained_model,
-            md5='689f9f01e7ee37f591b218e49c6686fb',
-        )
+            md5='689f9f01e7ee37f591b218e49c6686fb')
+
+    def init_weight(self, resnet101=None):
+        if resnet101 is None:
+            resnet101 = chainer.links.ResNet101Layers()
+
+        n_layer_dict = {
+            'res2': 3,
+            'res3': 4,
+            'res4': 23,
+            'res5': 3
+        }
+        def copy_bottleneck(bottle, orig_bottle, n_conv):
+            for i in range(0, n_conv):
+                conv_name = 'conv{}'.format(i + 1)
+                conv = getattr(bottle, conv_name)
+                orig_conv = getattr(orig_bottle, conv_name)
+                assert conv.W.shape == orig_conv.W.shape
+                conv.W = orig_conv.W
+
+        def copy_block(block, orig_block, res_name):
+            n_layer = n_layer_dict[res_name]
+            bottle = getattr(block, '{}_a'.format(res_name))
+            copy_bottleneck(bottle, orig_block.a, 4)
+            for i in range(1, n_layer):
+                bottle = getattr(block, '{0}_b{1}'.format(res_name, i))
+                orig_bottle = getattr(orig_block, 'b{}'.format(i))
+                copy_bottleneck(bottle, orig_bottle, 3)
+
+        with self.init_scope():
+            self.res1.conv1.W = resnet101.conv1.W
+            copy_block(self.res2, resnet101.res2, 'res2')
+            copy_block(self.res3, resnet101.res3, 'res3')
+            copy_block(self.res4, resnet101.res4, 'res4')
+            copy_block(self.res5, resnet101.res5, 'res5')
 
 
 def _psroi_pooling_2d_yx(
