@@ -46,7 +46,8 @@ def get_coco(split, img_split):
 # >>> coco = COCO('instances_train2014.json')
 # >>> cat_dict = coco.loadCats(coco.getCatIds())
 # >>> coco_instance_segmentation_label_names = [c['name'] for c in cat_dict]
-coco_instance_segmentation_label_names = (
+coco_label_names = (
+    '__background__',
     'person',
     'bicycle',
     'car',

@@ -53,7 +53,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         self.ids = list(self.img_props.keys())
 
         cats = anno['categories']
-        self.cat_ids = [cat['id'] for cat in cats]
+        self.cat_ids = [0] + [cat['id'] for cat in cats]
 
         self.anns = dict()
         self.imgToAnns = defaultdict(list)
