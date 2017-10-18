@@ -106,6 +106,14 @@ def resize_image(img, target_height, max_width):
     return resized_img
 
 
+def flip_mask(mask, x_flip=False, y_flip=False):
+    if y_flip:
+        mask = mask[:, ::-1, :]
+    if x_flip:
+        mask = mask[:, :, ::-1]
+    return mask
+
+
 def mask_probs2mask(mask_probs, bboxes, binary_thresh=0.4):
     masks = []
     for mask_prob, bbox in zip(mask_probs, bboxes):
