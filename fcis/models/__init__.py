@@ -1,4 +1,5 @@
 from fcis.models.fcis_resnet101 import FCISResNet101  # NOQA
+from fcis.models.fcis_train_chain import FCISTrainChain  # NOQA
 # from fcis.models.resnet101 import ResNet101C1         # NOQA
 # from fcis.models.resnet101 import ResNet101C2         # NOQA
 # from fcis.models.resnet101 import ResNet101C3         # NOQA
