@@ -29,7 +29,7 @@ class FCISResNet101(chainer.Chain):
             anchor_scales=[4, 8, 16, 32],
             n_train_pre_nms=6000, n_train_post_nms=300,
             n_test_pre_nms=6000, n_test_post_nms=300,
-            nms_thresh=0.7, rpn_min_size=16,
+            nms_thresh=0.7, rpn_min_size=2,
             group_size=7, roi_size=21,
             loc_normalize_mean=(0.0, 0.0, 0.0, 0.0),
             loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
