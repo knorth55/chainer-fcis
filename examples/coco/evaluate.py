@@ -36,7 +36,7 @@ def main():
 
     target_height = config.target_height
     max_width = config.max_width
-    score_thresh = 0.05
+    score_thresh = 1e-3
     nms_thresh = config.nms_thresh
     mask_merge_thresh = config.mask_merge_thresh
     binary_thresh = config.binary_thresh
