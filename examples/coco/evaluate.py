@@ -90,7 +90,7 @@ def main():
 
         if i % 100 == 0:
             print('{} / {},   avg speed={:.2f}s'.format(
-                i, len(dataset), (time.time() - start / (i + 1))))
+                i, len(dataset), (time.time() - start) / (i + 1)))
 
     results = eval_instance_segmentation_coco(
         sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
