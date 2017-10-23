@@ -50,12 +50,12 @@ def mask_voting(
     v_bboxes = np.empty((0, 4), dtype=np.float32)
     v_cls_probs = np.empty((0, ), dtype=np.float32)
 
-    for l in range(0, n_class):
-        if l == 0:
+    for label in range(0, n_class):
+        if label == 0:
             # l == 0 is background
             continue
         # non maximum suppression
-        cls_prob_l = cls_probs[:, l]
+        cls_prob_l = cls_probs[:, label]
         thresh_mask = cls_prob_l >= 0.001
         bbox_l = rois[thresh_mask]
         cls_prob_l = cls_prob_l[thresh_mask]
@@ -71,7 +71,7 @@ def mask_voting(
         for i, bbox in enumerate(bbox_l):
             iou = bbox_iou(rois, bbox[np.newaxis, :])
             idx = np.where(iou > mask_merge_thresh)[0]
-            mask_weights = cls_probs[idx, l]
+            mask_weights = cls_probs[idx, label]
             mask_weights = mask_weights / mask_weights.sum()
             mask_prob_l = mask_probs[idx]
             rois_l = rois[idx]
@@ -83,7 +83,7 @@ def mask_voting(
         score_thresh_mask = cls_prob_l > score_thresh
         v_mask_l = v_mask_l[score_thresh_mask]
         v_bbox_l = v_bbox_l[score_thresh_mask]
-        v_label_l = np.repeat(l, v_bbox_l.shape[0])
+        v_label_l = np.repeat(label, v_bbox_l.shape[0])
         v_cls_prob_l = cls_prob_l[score_thresh_mask]
         v_masks = np.concatenate((v_masks, v_mask_l))
         v_bboxes = np.concatenate((v_bboxes, v_bbox_l))

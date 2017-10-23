@@ -181,7 +181,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         plt.show()
 
 
-def _index_list_by_mask(l, mask):
-    indices = np.where(mask)[0]
-    l = [l[idx] for idx in indices]
-    return l
+def _index_list_by_mask(mask, mask_mask):
+    indices = np.where(mask_mask)[0]
+    mask = [mask[idx] for idx in indices]
+    return mask
