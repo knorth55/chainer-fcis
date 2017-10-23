@@ -108,7 +108,7 @@ def intersect_bbox_mask(bbox, gt_bbox, gt_mask, mask_size=21):
     end_y = start_y + h
     end_x = start_x + w
 
-    gt_roi_mask = np.zeros((bbox[2] - bbox[0], bbox[2] - bbox[0]))
+    gt_roi_mask = np.zeros((bbox[2] - bbox[0], bbox[3] - bbox[1]))
     gt_clipped_mask = gt_mask[min_y:max_y, min_x:max_x]
     gt_roi_mask[start_y:end_y, start_x:end_x] = gt_clipped_mask
     return gt_roi_mask
