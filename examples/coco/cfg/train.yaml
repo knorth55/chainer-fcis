@@ -1,0 +1,6 @@
+random_seed: 1234
+max_epoch: 8
+lr: 0.0005
+lr_step_epoch: 5.33
+target_height: 600
+max_width: 1000
