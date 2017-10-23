@@ -109,7 +109,7 @@ def main():
     max_width = config.max_width
     random_seed = config.random_seed
     lr = float(config.lr)
-    lr_step_epoch = config.lr_step_epoch
+    # lr_step_epoch = config.lr_step_epoch
     max_epoch = config.max_epoch
 
     # set random seed
@@ -119,7 +119,7 @@ def main():
     train_dataset = COCOInstanceSegmentationDataset(split='train')
     train_dataset = remove_zero_bbox(train_dataset)
     test_dataset = COCOInstanceSegmentationDataset(split='val')
-    lr_step_size = int(round(lr_step_epoch * len(train_dataset)))
+    # lr_step_size = int(round(lr_step_epoch * len(train_dataset)))
 
     # model
     n_class = len(coco_label_names)
@@ -161,9 +161,9 @@ def main():
     trainer = chainer.training.Trainer(
         updater, (max_epoch, 'epoch'), out=out)
 
-    trainer.extend(
-        chainer.training.extensions.ExponentialShift('lr', 0.1),
-        trigger=(lr_step_size, 'iteration'))
+    # trainer.extend(
+    #     chainer.training.extensions.ExponentialShift('lr', 0.1),
+    #     trigger=(lr_step_size, 'iteration'))
 
     # interval
     save_interval = 10000, 'iteration'
