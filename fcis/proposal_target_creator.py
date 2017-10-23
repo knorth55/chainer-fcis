@@ -29,10 +29,11 @@ class ProposalTargetCreator(object):
         self.mask_size = mask_size
         self.binary_thresh = binary_thresh
 
-    def __call__(self, rois, masks, bboxes, labels):
+    def __call__(self, rois, bboxes, masks, labels):
 
         rois = cuda.to_cpu(rois)
         bboxes = cuda.to_cpu(bboxes)
+        masks = cuda.to_cpu(masks)
         labels = cuda.to_cpu(labels)
 
         n_bbox, _ = bboxes.shape
@@ -65,31 +66,8 @@ class ProposalTargetCreator(object):
         # The indices that we're selecting (both foreground and background).
         keep_indices = np.append(fg_indices, bg_indices)
 
-        # pad more to ensure a fixed minibatch size
-        while keep_indices.shape[0] < self.n_sample:
-            gap = min(len(rois), self.n_sample - keep_indices.shape[0])
-            bg_full_indices = list(set(range(len(rois))) - set(fg_indices))
-            gap_indexes = np.random.choice(
-                bg_full_indices, size=gap, replace=False)
-            keep_indices = np.append(keep_indices, gap_indexes)
-
         # sample_rois
         sample_rois = rois[keep_indices]
-
-        # masks
-        gt_roi_masks = np.empty((0, self.mask_size, self.mask_size),
-                                dtype=np.float32)
-        gt_rois = bboxes[gt_assignment[fg_indices]]
-        gt_masks = masks[gt_assignment[fg_indices]]
-        for roi, gt_roi, gt_mask in zip(sample_rois, gt_rois, gt_masks):
-            roi = rois.astype(np.int32)
-            gt_roi_mask = fcis.mask.intersect_bbox_mask(
-                roi, gt_roi, gt_mask)
-            gt_roi_mask = cv2.resize(
-                gt_roi_mask.astype(np.float),
-                (self.mask_size, self.mask_size))
-            gt_roi_mask = gt_roi_mask >= self.binary_thresh
-            gt_roi_masks = np.concatenate((gt_roi_masks, gt_roi_mask))
 
         # locs
         # Compute offsets and scales to match sampled RoIs to the GTs.
@@ -99,18 +77,37 @@ class ProposalTargetCreator(object):
             sample_rois, bboxes[gt_assignment[keep_indices]])
         gt_roi_locs = gt_roi_locs - loc_normalize_mean
         gt_roi_locs = gt_roi_locs / loc_normalize_std
+        gt_roi_locs = np.concatenate(
+            (np.zeros((len(gt_roi_locs), 4)), gt_roi_locs), axis=1)
+
+        # masks
+        gt_roi_masks = -1 * np.ones(
+            (len(keep_indices), self.mask_size, self.mask_size),
+            dtype=np.int32)
+
+        for i, fg_index in enumerate(fg_indices):
+            roi = np.round(sample_rois[i]).astype(np.int32)
+            gt_roi = np.round(bboxes[gt_assignment[fg_index]])
+            gt_roi = gt_roi.astype(np.int32)
+            gt_mask = masks[gt_assignment[fg_index]]
+            gt_roi_mask = fcis.mask.intersect_bbox_mask(
+                roi, gt_roi, gt_mask)
+            gt_roi_mask = cv2.imresize(
+                gt_roi_mask, (self.mask_size, self.mask_size))
+            gt_roi_mask = gt_roi_mask >= self.binary_thresh
+            gt_roi_mask = gt_roi_mask.astype(np.int32)
+            gt_roi_masks[i] = gt_roi_mask
 
         # labels
         # The label with value 0 is the background.
-        # gt_roi_labels = labels[gt_assignment] + 1
         gt_roi_labels = labels[gt_assignment]
         gt_roi_labels = gt_roi_labels[keep_indices]
         # set labels of bg_rois to be 0
         gt_roi_labels[fg_rois_per_this_image:] = 0
 
         sample_rois = cuda.to_gpu(sample_rois)
-        gt_roi_masks = cuda.to_gpu(gt_roi_masks)
         gt_roi_locs = cuda.to_gpu(gt_roi_locs)
+        gt_roi_masks = cuda.to_gpu(gt_roi_masks)
         gt_roi_labels = cuda.to_gpu(gt_roi_labels)
 
-        return sample_rois, gt_roi_masks, gt_roi_locs, gt_roi_labels
+        return sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels
