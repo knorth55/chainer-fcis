@@ -1,4 +1,4 @@
-chainer-fcis - FCIS 
+chainer-fcis - FCIS
 ===================
 ![Example](static/example.png)
 
@@ -9,9 +9,9 @@ Original Mxnet repository is [msracver/FCIS](https://github.com/msracver/FCIS).
 Requirement
 -----------
 
+- [CuPy](https://github.com/cupy/cupy)
 - [Chainer](https://github.com/chainer/chainer)
 - [ChainerCV](https://github.com/chainer/chainercv)
-- NumPy
 - OpenCV2
 
 Additional Requirement
@@ -28,7 +28,14 @@ Installation
 ------------
 
 ```bash
-git clone https://github.com/knorth55/chainer-fcis.git 
+# Requirement installation
+# I recommend anacoda.
+conda create -n fcis python=2.7
+conda install -c menpo opencv
+pip install cupy
+
+# Installation
+git clone https://github.com/knorth55/chainer-fcis.git
 cd chainer-fcis
 pip install -e .
 ```
