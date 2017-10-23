@@ -30,10 +30,6 @@ class PSROIPooling2D(function.Function):
             roi_type.shape[1] == 5,
         )
 
-    def forward_cpu(self, inputs):
-        # NOT INPLEMENTED YET
-        return
-
     def forward_gpu(self, inputs):
         self.retain_inputs((1,))
         self._bottom_data_shape = inputs[0].shape
@@ -117,10 +113,6 @@ class PSROIPooling2D(function.Function):
           bottom_rois, top_data)
 
         return top_data,
-
-    def backward_cpu(self, inputs, gy):
-        # NOT INPLEMENTED YET
-        return
 
     def backward_gpu(self, inputs, gy):
         bottom_rois = inputs[1]
