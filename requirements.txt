@@ -1,5 +1,7 @@
 chainer>=2.1.0
 chainercv
+fcn
 easydict
-numpy
 matplotlib
+numpy
+pyyaml
