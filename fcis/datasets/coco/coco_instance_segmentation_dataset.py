@@ -76,7 +76,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def labels(self):
         labels = list()
         for i in range(len(self)):
-            _, _, label, _ = self._get_annotations(i)
+            label = self._get_annotations(i)[2]
             labels.append(label)
         return labels
 
