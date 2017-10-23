@@ -40,6 +40,18 @@ class BottleNeckA(chainer.Chain):
 
         return F.relu(h1 + h2)
 
+    def disable_update(self, conv, bn):
+        if conv:
+            self.conv1.disable_update()
+            self.conv2.disable_update()
+            self.conv3.disable_update()
+            self.conv4.disable_update()
+        if bn:
+            self.bn1.disable_update()
+            self.bn2.disable_update()
+            self.bn3.disable_update()
+            self.bn4.disable_update()
+
 
 class DilatedBottleNeckA(chainer.Chain):
 
@@ -74,6 +86,18 @@ class DilatedBottleNeckA(chainer.Chain):
 
         return F.relu(h1 + h2)
 
+    def disable_update(self, conv, bn):
+        if conv:
+            self.conv1.disable_update()
+            self.conv2.disable_update()
+            self.conv3.disable_update()
+            self.conv4.disable_update()
+        if bn:
+            self.bn1.disable_update()
+            self.bn2.disable_update()
+            self.bn3.disable_update()
+            self.bn4.disable_update()
+
 
 class BottleNeckB(chainer.Chain):
 
@@ -100,6 +124,16 @@ class BottleNeckB(chainer.Chain):
         h = self.bn3(self.conv3(h))
 
         return F.relu(h + x)
+
+    def disable_update(self, conv, bn):
+        if conv:
+            self.conv1.disable_update()
+            self.conv2.disable_update()
+            self.conv3.disable_update()
+        if bn:
+            self.bn1.disable_update()
+            self.bn2.disable_update()
+            self.bn3.disable_update()
 
 
 class DilatedBottleNeckB(chainer.Chain):
@@ -129,6 +163,16 @@ class DilatedBottleNeckB(chainer.Chain):
 
         return F.relu(h + x)
 
+    def disable_update(self, conv, bn):
+        if conv:
+            self.conv1.disable_update()
+            self.conv2.disable_update()
+            self.conv3.disable_update()
+        if bn:
+            self.bn1.disable_update()
+            self.bn2.disable_update()
+            self.bn3.disable_update()
+
 
 class ResNet101C1(chainer.Chain):
 
@@ -148,6 +192,10 @@ class ResNet101C1(chainer.Chain):
         h = F.max_pooling_2d(F.relu(h), 3, stride=2, pad=0)
         return h
 
+    def disable_update(self, conv=True, bn=True):
+        self.conv1.disable_update()
+        self.bn1.disable_update()
+
 
 class ResNet101C2(chainer.Chain):
 
@@ -165,6 +213,11 @@ class ResNet101C2(chainer.Chain):
         for i in range(1, self.layer):
             h = self['res2_b{}'.format(i)](h)
         return h
+
+    def disable_update(self, conv=True, bn=True):
+        self.res2_a.disable_update(conv, bn)
+        for i in range(1, self.n_layer):
+            self['res2_b{}'.format(i)].disable_update(conv, bn)
 
 
 class ResNet101C3(chainer.Chain):
@@ -184,6 +237,11 @@ class ResNet101C3(chainer.Chain):
             h = self['res3_b{}'.format(i)](h)
         return h
 
+    def disable_update(self, conv=True, bn=True):
+        self.res3_a.disable_update(conv, bn)
+        for i in range(1, self.n_layer):
+            self['res3_b{}'.format(i)].disable_update(conv, bn)
+
 
 class ResNet101C4(chainer.Chain):
 
@@ -201,6 +259,11 @@ class ResNet101C4(chainer.Chain):
         for i in range(1, self.layer):
             h = self['res4_b{}'.format(i)](h)
         return h
+
+    def disable_update(self, conv=True, bn=True):
+        self.res4_a.disable_update(conv, bn)
+        for i in range(1, self.n_layer):
+            self['res4_b{}'.format(i)].disable_update(conv, bn)
 
 
 class ResNet101C5(chainer.Chain):
@@ -220,3 +283,8 @@ class ResNet101C5(chainer.Chain):
         for i in range(1, self.layer):
             h = self['res5_b{}'.format(i)](h)
         return h
+
+    def disable_update(self, conv=True, bn=True):
+        self.res5_a.disable_update(conv, bn)
+        for i in range(1, self.n_layer):
+            self['res5_b{}'.format(i)].disable_update(conv, bn)
