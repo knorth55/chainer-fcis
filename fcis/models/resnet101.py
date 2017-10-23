@@ -199,18 +199,18 @@ class ResNet101C1(chainer.Chain):
 
 class ResNet101C2(chainer.Chain):
 
-    layer = 3
+    n_layer = 3
 
     def __init__(self):
         super(ResNet101C2, self).__init__()
         with self.init_scope():
             self.res2_a = BottleNeckA(64, 256, 64, stride=1)
-            for i in range(1, self.layer):
+            for i in range(1, self.n_layer):
                 self.add_link('res2_b{}'.format(i), BottleNeckB(256, 64))
 
     def __call__(self, x):
         h = self.res2_a(x)
-        for i in range(1, self.layer):
+        for i in range(1, self.n_layer):
             h = self['res2_b{}'.format(i)](h)
         return h
 
@@ -222,18 +222,18 @@ class ResNet101C2(chainer.Chain):
 
 class ResNet101C3(chainer.Chain):
 
-    layer = 4
+    n_layer = 4
 
     def __init__(self):
         super(ResNet101C3, self).__init__()
         with self.init_scope():
             self.res3_a = BottleNeckA(256, 512, 128, stride=2)
-            for i in range(1, self.layer):
+            for i in range(1, self.n_layer):
                 self.add_link('res3_b{}'.format(i), BottleNeckB(512, 128))
 
     def __call__(self, x):
         h = self.res3_a(x)
-        for i in range(1, self.layer):
+        for i in range(1, self.n_layer):
             h = self['res3_b{}'.format(i)](h)
         return h
 
@@ -245,18 +245,18 @@ class ResNet101C3(chainer.Chain):
 
 class ResNet101C4(chainer.Chain):
 
-    layer = 23
+    n_layer = 23
 
     def __init__(self):
         super(ResNet101C4, self).__init__()
         with self.init_scope():
             self.res4_a = BottleNeckA(512, 1024, 256, stride=2)
-            for i in range(1, self.layer):
+            for i in range(1, self.n_layer):
                 self.add_link('res4_b{}'.format(i), BottleNeckB(1024, 256))
 
     def __call__(self, x):
         h = self.res4_a(x)
-        for i in range(1, self.layer):
+        for i in range(1, self.n_layer):
             h = self['res4_b{}'.format(i)](h)
         return h
 
@@ -268,19 +268,19 @@ class ResNet101C4(chainer.Chain):
 
 class ResNet101C5(chainer.Chain):
 
-    layer = 3
+    n_layer = 3
 
     def __init__(self):
         super(ResNet101C5, self).__init__()
         with self.init_scope():
             self.res5_a = DilatedBottleNeckA(1024, 2048, 512, stride=1)
-            for i in range(1, self.layer):
+            for i in range(1, self.n_layer):
                 self.add_link('res5_b{}'.format(i),
                               DilatedBottleNeckB(2048, 512))
 
     def __call__(self, x):
         h = self.res5_a(x)
-        for i in range(1, self.layer):
+        for i in range(1, self.n_layer):
             h = self['res5_b{}'.format(i)](h)
         return h
 
