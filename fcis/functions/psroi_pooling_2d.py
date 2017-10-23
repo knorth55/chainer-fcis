@@ -128,12 +128,12 @@ class PSROIPooling2D(function.Function):
         bottom_diff = cuda.cupy.zeros(self._bottom_data_shape, numpy.float32)
         cuda.cupy.ElementwiseKernel(
             '''
-            raw float32 top_diff, int32 num_rois,
+            raw float32 bottom_diff, int32 num_rois,
             float32 spatial_scale, int32 channels, int32 height, int32 width,
-            int32 pooled_height, int32 pooled_width, int32, group_size,
+            int32 pooled_height, int32 pooled_width, int32 group_size,
             int32 output_dim, raw float32 bottom_rois
             ''',
-            'float32 bottom_diff',
+            'float32 top_diff',
             '''
             int pw = i % pooled_width;
             int ph = (i / pooled_width) % pooled_height;
@@ -184,8 +184,8 @@ class PSROIPooling2D(function.Function):
             int c = (ctop * group_size + gh) * group_size + gw;
 
             int data_offset = (roi_batch_ind * channels + c) * height * width;
-            float bin_area = (hend - hstart)*(wend - wstart);
-            float diff_val = is_empty ? (float)0. : top_diff[i] / bin_area;
+            float bin_area = (hend - hstart) * (wend - wstart);
+            float diff_val = is_empty ? (float) 0. : top_diff / bin_area;
             for (int h = hstart; h < hend; ++h){
               for (int w = wstart; w < wend; ++w){
                 int bottom_index = h * width + w;
@@ -193,11 +193,11 @@ class PSROIPooling2D(function.Function):
               }
             }
             ''', 'roi_pooling_2d_bwd'
-        )(gy[0], bottom_rois.shape[0], self.spatial_scale,
+        )(bottom_diff, bottom_rois.shape[0], self.spatial_scale,
           channels, height, width, self.outh, self.outw, self.group_size,
-          self.output_dim, bottom_rois, bottom_diff)
+          self.output_dim, bottom_rois, gy[0])
 
-        return bottom_diff,
+        return bottom_diff, None
 
 
 def psroi_pooling_2d(
