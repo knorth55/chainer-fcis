@@ -89,7 +89,6 @@ class FCISResNet101(chainer.Chain):
         h = self.res2(h)
         h = self.res3(h)
         h = self.res4(h)
-        self.res4_h = h
 
         # RPN
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(
@@ -97,19 +96,14 @@ class FCISResNet101(chainer.Chain):
         roi_indices = roi_indices.astype(np.float32)
         indices_and_rois = self.xp.concatenate(
             (roi_indices[:, None], rois), axis=1)
-        self.rois1 = rois
 
         # ResNet101C5 with dilated convolution
         h = self.res5(h)
-        self.res5_h = h
 
         # Convolution for PSROI pooling
         h = F.relu(self.psroi_conv1(h))
-        self.psroi_conv1_h = h
         h_seg = self.psroi_conv2(h)
-        self.psroi_conv2_h = h_seg
         h_locs = self.psroi_conv3(h)
-        self.psroi_conv3_h = h_locs
 
         # PSROI pooling and regression
         roi_seg_scores, roi_locs, roi_cls_scores = self._pool_and_predict(
@@ -129,8 +123,6 @@ class FCISResNet101(chainer.Chain):
         rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H)
         rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W)
 
-        self.rois2 = rois2
-
         # PSROI pooling and regression
         indices_and_rois2 = self.xp.concatenate(
             (roi_indices[:, None], rois2), axis=1)
@@ -148,10 +140,7 @@ class FCISResNet101(chainer.Chain):
         roi_seg_probs = self.xp.concatenate(
             (roi_seg_probs.data, roi_seg_probs2.data))
 
-        self.rois = rois
-        self.roi_indices = roi_indices
-        self.roi_cls_probs = roi_cls_probs
-        self.roi_seg_probs = roi_seg_probs
+        return roi_indices, rois, roi_seg_probs, roi_cls_probs
 
     def _pool_and_predict(
             self, indices_and_rois, h_seg, h_locs, gt_roi_labels=None):
@@ -223,16 +212,14 @@ class FCISResNet101(chainer.Chain):
                 orig_img, target_height, max_width)
             img = img.astype(np.float32)
             scale = img.shape[1] / float(orig_H)
-            x = chainer.Variable(self.xp.array(img[None]))
-
-            # inference
-            self.__call__(x, scale)
+            with chainer.using_config('train', False), \
+                    chainer.function.no_backprop_mode():
+                # inference
+                x = chainer.Variable(self.xp.array(img[None]))
+                _, rois, roi_seg_probs, roi_cls_probs = self.__call__(x, scale)
 
             # assume that batch_size = 1
-            rois = self.rois
             rois = rois / scale
-            roi_cls_probs = self.roi_cls_probs
-            roi_seg_probs = self.roi_seg_probs
 
             # shape: (n_rois, H, W)
             roi_mask_probs = roi_seg_probs[:, 1, :, :]
