@@ -92,8 +92,9 @@ class ProposalTargetCreator(object):
             gt_mask = masks[gt_assignment[fg_index]]
             gt_roi_mask = fcis.mask.intersect_bbox_mask(
                 roi, gt_roi, gt_mask)
-            gt_roi_mask = cv2.imresize(
-                gt_roi_mask, (self.mask_size, self.mask_size))
+            gt_roi_mask = cv2.resize(
+                gt_roi_mask, (self.mask_size, self.mask_size),
+                interpolation=cv2.INTER_NEAREST)
             gt_roi_mask = gt_roi_mask >= self.binary_thresh
             gt_roi_mask = gt_roi_mask.astype(np.int32)
             gt_roi_masks[i] = gt_roi_mask

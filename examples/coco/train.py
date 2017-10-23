@@ -44,9 +44,9 @@ class Transform(object):
             bbox = np.round(bbox).astype(np.int32)
             mask_height = bbox[2] - bbox[0]
             mask_width = bbox[3] - bbox[1]
-            resized_mask = cv2.imresize(
-                mask.astype(int), (mask_width, mask_height),
-                interp='nearest')
+            resized_mask = cv2.resize(
+                mask.astype(np.int32), (mask_width, mask_height),
+                interpolation=cv2.INTER_NEAREST)
             resized_masks.append(resized_mask)
 
         whole_masks = fcis.utils.mask2whole_mask(
