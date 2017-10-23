@@ -264,13 +264,31 @@ class FCISResNet101(chainer.Chain):
             'res5': 3
         }
 
+        def copy_conv(conv, orig_conv):
+            assert conv.W.data.shape == orig_conv.W.data.shape
+            conv.W.data = orig_conv.W.data
+
+        def copy_bn(bn, orig_bn):
+            assert bn.gamma.data.shape == orig_bn.gamma.data.shape
+            assert bn.beta.data.shape == orig_bn.beta.data.shape
+            assert bn.avg_var.shape == orig_bn.avg_var.shape
+            assert bn.avg_mean.shape == orig_bn.avg_mean.shape
+            bn.gamma.data = orig_bn.gamma.data
+            bn.beta.data = orig_bn.beta.data
+            bn.avg_var = orig_bn.avg_var
+            bn.avg_mean = orig_bn.avg_mean
+
         def copy_bottleneck(bottle, orig_bottle, n_conv):
             for i in range(0, n_conv):
                 conv_name = 'conv{}'.format(i + 1)
                 conv = getattr(bottle, conv_name)
                 orig_conv = getattr(orig_bottle, conv_name)
-                assert conv.W.shape == orig_conv.W.shape
-                conv.W = orig_conv.W
+                copy_conv(conv, orig_conv)
+
+                bn_name = 'bn{}'.format(i + 1)
+                bn = getattr(bottle, bn_name)
+                orig_bn = getattr(bottle, bn_name)
+                copy_bn(bn, orig_bn)
 
         def copy_block(block, orig_block, res_name):
             n_layer = n_layer_dict[res_name]
@@ -282,7 +300,8 @@ class FCISResNet101(chainer.Chain):
                 copy_bottleneck(bottle, orig_bottle, 3)
 
         with self.init_scope():
-            self.res1.conv1.W = resnet101.conv1.W
+            copy_conv(self.res1.conv1, resnet101.conv1)
+            copy_bn(self.res1.bn1, resnet101.bn1)
             copy_block(self.res2, resnet101.res2, 'res2')
             copy_block(self.res3, resnet101.res3, 'res3')
             copy_block(self.res4, resnet101.res4, 'res4')
