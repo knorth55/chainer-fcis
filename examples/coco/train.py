@@ -45,8 +45,8 @@ def remove_zero_bbox(dataset, target_height, max_width):
         resized_bboxes = np.round(resized_bboxes).astype(np.int32)
 
         # check if there is too small bbox
-        shapes = (resized_bboxes[:, 2:] - resized_bboxes[:, :2])
-        masked_shapes = [shape for shape in shapes if shape.min() > 0]
+        shapes = resized_bboxes[:, 2:] - resized_bboxes[:, :2]
+        masked_shapes = shapes[shapes.min(axis=1) > 0]
         if len(masked_shapes) == 0:
             remove_ids.append(img_id)
 
