@@ -206,11 +206,13 @@ def main():
 
     # logging
     model_name = model.fcis.__class__.__name__
-    trainer.extend(
-        chainer.training.extensions.snapshot(
-            savefun=chainer.serializers.save_npz,
-            filename='%s_trainer_iter_{.updater.iteration}.npz' % model_name),
-        trigger=save_interval)
+
+    # trainer.extend(
+    #     chainer.training.extensions.snapshot(
+    #         savefun=chainer.serializers.save_npz,
+    #         filename='%s_trainer_iter_{.updater.iteration}.npz'
+    #                   % model_name),
+    #     trigger=save_interval)
 
     trainer.extend(
         chainer.training.extensions.snapshot_object(
