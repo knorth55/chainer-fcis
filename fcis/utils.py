@@ -94,11 +94,17 @@ def read_images(imgpaths, channel_order='BGR'):
     return imgs
 
 
-def resize_image(img, target_height, max_width):
-    H, W, _ = img.shape
+def get_resize_scale(shape, target_height, max_width):
+    H, W = shape
     resize_scale = target_height / float(H)
     if W * resize_scale > max_width:
         resize_scale = max_width / float(W)
+    return resize_scale
+
+
+def resize_image(img, target_height, max_width):
+    resize_scale = get_resize_scale(
+        img.shape[:2], target_height, max_width)
     resized_img = cv2.resize(
         img, None, None,
         fx=resize_scale, fy=resize_scale,
