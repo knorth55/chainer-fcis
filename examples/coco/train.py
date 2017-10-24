@@ -6,6 +6,7 @@ import chainer
 from chainer.datasets import TransformDataset
 import chainercv
 import cv2
+import cupy
 import datetime
 import easydict
 import fcis
@@ -146,6 +147,7 @@ def main():
 
     # set random seed
     np.random.seed(random_seed)
+    cupy.random.seed(random_seed)
 
     # dataset
     train_dataset = COCOInstanceSegmentationDataset(split='train')
