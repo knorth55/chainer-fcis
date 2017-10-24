@@ -5,8 +5,8 @@ import argparse
 import chainer
 from chainer.datasets import TransformDataset
 import chainercv
-import cv2
 import cupy
+import cv2
 import datetime
 import easydict
 import fcis
