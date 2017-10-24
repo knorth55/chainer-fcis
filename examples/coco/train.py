@@ -204,7 +204,7 @@ def main():
         'main/fcis_mask_loss',
         'validation/main/mAP[0.50:0.95]',
     ]), trigger=print_interval)
-    trainer.extend(chainer.training.extensions.ProgressBar(update_interval=1))
+    trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
 
     if chainer.training.extensions.PlotReport.available():
         trainer.extend(
