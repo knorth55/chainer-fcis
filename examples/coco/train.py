@@ -198,7 +198,7 @@ def main():
     #     trigger=(lr_step_size, 'iteration'))
 
     # interval
-    save_interval = 10000, 'iteration'
+    save_interval = 1, 'epoch'
     log_interval = 20, 'iteration'
     plot_interval = 3000, 'iteration'
     print_interval = 20, 'iteration'
