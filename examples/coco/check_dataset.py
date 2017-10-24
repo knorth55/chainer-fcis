@@ -27,8 +27,6 @@ def check(dataset, model, i, target_height, max_width):
         bboxes, (orig_H, orig_W), (H, W))
 
     indices = get_keep_indices(bboxes)
-    if len(indices) != len(bboxes):
-        print(indices)
     bboxes = bboxes[indices, :]
     labels = labels[indices]
 
@@ -41,6 +39,7 @@ def check(dataset, model, i, target_height, max_width):
         mask_width = bbox[3] - bbox[1]
 
         if mask_height == 0 or mask_width == 0:
+            print('Detect zero size bbox')
             print('i: {}'.format(i))
             print('labels: {}'.format(labels))
             print('scale: {}'.format(scale))
