@@ -21,6 +21,50 @@ import yaml
 filepath = osp.abspath(osp.dirname(__file__))
 
 
+def remove_zero_bbox(dataset, target_height, max_width):
+    remove_ids = []
+
+    for i in range(0, len(dataset)):
+        img_id = dataset.ids[i]
+        bboxes, _, labels, _, _ = dataset._get_annotations(i)
+        if len(bboxes) == 0:
+            remove_ids.append(img_id)
+        if len(labels) == 0:
+            remove_ids.append(img_id)
+
+        orig_H = dataset.img_props[img_id]['height']
+        orig_W = dataset.img_props[img_id]['width']
+        resize_scale = fcis.utils.get_resize_scale(
+            (orig_H, orig_W), target_height, max_width)
+        H = int(round(resize_scale * orig_H))
+        W = int(round(resize_scale * orig_W))
+
+        resized_bboxes = chainercv.transforms.resize_bbox(
+            bboxes, (orig_H, orig_W), (H, W))
+        resized_bboxes = np.round(resized_bboxes).astype(np.int32)
+
+        # check if there is too small bbox
+        shapes = (resized_bboxes[:, 2:] - resized_bboxes[:, :2])
+        masked_shapes = [shape for shape in shapes if shape.min() > 0]
+        if len(masked_shapes) == 0:
+            remove_ids.append(img_id)
+
+    remove_ids = list(set(remove_ids))
+    dataset.ids = [i for i in dataset.ids if i not in remove_ids]
+    return dataset
+
+
+def get_keep_indices(bboxes):
+    indices = []
+    for i, bbox in enumerate(bboxes):
+        bbox = np.round(bbox).astype(np.int32)
+        mask_height = bbox[2] - bbox[0]
+        mask_width = bbox[3] - bbox[1]
+        if mask_height > 0 and mask_width > 0:
+            indices.append(i)
+    return np.array(indices, dtype=np.int32)
+
+
 class Transform(object):
 
     def __init__(self, model, target_height, max_width):
@@ -39,15 +83,21 @@ class Transform(object):
         bboxes = chainercv.transforms.resize_bbox(
             bboxes, (orig_H, orig_W), (H, W))
 
+        indices = get_keep_indices(bboxes)
         resized_masks = []
-        for mask, bbox in zip(masks, bboxes):
+        for i, (bbox, mask) in enumerate(zip(bboxes, masks)):
+            if i not in indices:
+                continue
             bbox = np.round(bbox).astype(np.int32)
             mask_height = bbox[2] - bbox[0]
             mask_width = bbox[3] - bbox[1]
             resized_mask = cv2.resize(
-                mask.astype(np.int32), (mask_width, mask_height),
+                mask.astype(np.int32),
+                (mask_width, mask_height),
                 interpolation=cv2.INTER_NEAREST)
             resized_masks.append(resized_mask)
+        bboxes = bboxes[indices, :]
+        labels = labels[indices]
 
         whole_masks = fcis.utils.mask2whole_mask(
             resized_masks, bboxes, (H, W))
@@ -60,24 +110,6 @@ class Transform(object):
             bboxes, (H, W), x_flip=params['x_flip'])
 
         return img, bboxes, whole_masks, labels, scale
-
-
-def remove_zero_bbox(dataset):
-    remove_ids = []
-    for img_id in dataset.ids:
-        annotation = dataset.imgToAnns[img_id]
-        bbox = np.array([ann['bbox'] for ann in annotation],
-                        dtype=np.float32)
-        if len(bbox) == 0:
-            remove_ids.append(img_id)
-
-    for i, label in enumerate(dataset.labels):
-        if len(label) == 0:
-            remove_ids.append(dataset.ids[i])
-
-    remove_ids = list(set(remove_ids))
-    dataset.ids = [i for i in dataset.ids if i not in remove_ids]
-    return dataset
 
 
 def main():
@@ -117,7 +149,7 @@ def main():
 
     # dataset
     train_dataset = COCOInstanceSegmentationDataset(split='train')
-    train_dataset = remove_zero_bbox(train_dataset)
+    train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
     test_dataset = COCOInstanceSegmentationDataset(split='val')
     # lr_step_size = int(round(lr_step_epoch * len(train_dataset)))
 
