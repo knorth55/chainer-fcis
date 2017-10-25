@@ -94,7 +94,7 @@ class Transform(object):
             mask_height = bbox[2] - bbox[0]
             mask_width = bbox[3] - bbox[1]
             resized_mask = cv2.resize(
-                mask.astype(np.int32),
+                mask.astype(np.int8),
                 (mask_width, mask_height),
                 interpolation=cv2.INTER_NEAREST)
             resized_masks.append(resized_mask)
