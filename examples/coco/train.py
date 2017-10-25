@@ -16,6 +16,7 @@ from fcis.extensions import InstanceSegmentationCOCOEvaluator
 import numpy as np
 import os
 import os.path as osp
+import shutil
 import yaml
 
 
@@ -137,6 +138,8 @@ def main():
         cfgpath = osp.join(filepath, 'cfg', 'train.yaml')
     with open(cfgpath, 'r') as f:
         config = easydict.EasyDict(yaml.load(f))
+
+    shutil.copy(cfgpath, osp.join(out, 'train.yaml'))
 
     target_height = config.target_height
     max_width = config.max_width
