@@ -202,7 +202,7 @@ def main():
     # interval
     save_interval = 1, 'epoch'
     log_interval = 20, 'iteration'
-    plot_interval = 3000, 'iteration'
+    # plot_interval = 3000, 'iteration'
     print_interval = 20, 'iteration'
     test_interval = 8, 'epoch'
 
@@ -242,12 +242,12 @@ def main():
     ]), trigger=print_interval)
     trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
 
-    if chainer.training.extensions.PlotReport.available():
-        trainer.extend(
-            chainer.training.extensions.PlotReport(
-                ['main/loss'],
-                file_name='loss.png', trigger=plot_interval),
-            trigger=plot_interval)
+    # if chainer.training.extensions.PlotReport.available():
+    #     trainer.extend(
+    #         chainer.training.extensions.PlotReport(
+    #             ['main/loss'],
+    #             file_name='loss.png', trigger=plot_interval),
+    #         trigger=plot_interval)
 
     trainer.extend(
         InstanceSegmentationCOCOEvaluator(
