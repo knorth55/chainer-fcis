@@ -184,7 +184,7 @@ class PSROIPooling2D(function.Function):
                 atomicAdd(&bottom_diff[data_offset + bottom_index], diff_val);
               }
             }
-            ''', 'roi_pooling_2d_bwd'
+            ''', 'psroi_pooling_2d_bwd'
         )(bottom_diff, bottom_rois.shape[0], self.spatial_scale,
           channels, height, width, self.outh, self.outw, self.group_size,
           self.output_dim, bottom_rois, gy[0])
