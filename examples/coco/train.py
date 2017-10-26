@@ -148,9 +148,12 @@ def main():
     target_height = config.target_height
     max_width = config.max_width
     random_seed = config.random_seed
-    lr = float(config.lr)
-    # lr_step_epoch = config.lr_step_epoch
     max_epoch = config.max_epoch
+    warm_iter = config.warm_iter
+    lr = float(config.lr)
+    lr_warmup = config.lr_warmup
+    lr_decay_epoch = config.lr_decay_epoch
+    lr_decay_factor = config.lr_decay_factor
 
     # set random seed
     np.random.seed(random_seed)
@@ -160,7 +163,6 @@ def main():
     train_dataset = COCOInstanceSegmentationDataset(split='train')
     train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
     test_dataset = COCOInstanceSegmentationDataset(split='val')
-    # lr_step_size = int(round(lr_step_epoch * len(train_dataset)))
 
     # model
     n_class = len(coco_label_names)
@@ -202,9 +204,15 @@ def main():
     trainer = chainer.training.Trainer(
         updater, (max_epoch, 'epoch'), out=out)
 
-    # trainer.extend(
-    #     chainer.training.extensions.ExponentialShift('lr', 0.1),
-    #     trigger=(lr_step_size, 'iteration'))
+    # lr scheduler
+    lr_decay_iter = int(len(train_dataset) * lr_decay_epoch)
+    trainer.extend(
+        chainer.training.extensions.LinearShift(
+            'lr', (lr_warmup, lr), (warm_iter, warm_iter + 1)))
+    trainer.extend(
+        chainer.training.extensions.ExponentialShift('lr', lr_decay_factor),
+        trigger=chainer.training.triggers.ManualScheduleTrigger(
+            [lr_decay_iter], 'epoch'))
 
     # interval
     save_interval = 1, 'epoch'

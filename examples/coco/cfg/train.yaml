@@ -1,6 +1,9 @@
 random_seed: 1234
 max_epoch: 8
-lr: 0.0005
-lr_step_epoch: 5.33
 target_height: 600
 max_width: 1000
+warmup_iter: 4000
+lr: 0.0005
+lr_warmup: 0.00005
+lr_decay_epoch: 5.33
+lr_decay_factor: 0.1
