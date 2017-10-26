@@ -79,6 +79,7 @@ class Transform(object):
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
             orig_img, self.target_height, self.max_width)
+        del orig_img
         _, H, W = img.shape
         scale = H / orig_H
 
@@ -93,16 +94,19 @@ class Transform(object):
             bbox = np.round(bbox).astype(np.int32)
             mask_height = bbox[2] - bbox[0]
             mask_width = bbox[3] - bbox[1]
-            resized_mask = cv2.resize(
+            mask = cv2.resize(
                 mask.astype(np.int8),
                 (mask_width, mask_height),
                 interpolation=cv2.INTER_NEAREST)
-            resized_masks.append(resized_mask)
+            resized_masks.append(mask)
+            del mask
+        del masks
         bboxes = bboxes[indices, :]
         labels = labels[indices]
 
         whole_masks = fcis.utils.mask2whole_mask(
             resized_masks, bboxes, (H, W))
+        del resized_masks
 
         img, params = chainercv.transforms.random_flip(
             img, x_random=True, return_param=True)
