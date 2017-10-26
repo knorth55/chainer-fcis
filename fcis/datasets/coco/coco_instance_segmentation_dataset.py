@@ -10,7 +10,9 @@ from chainercv import utils
 
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco.coco_utils import get_coco
+from fcis.utils import label_mask2whole_mask
 from fcis.utils import visualize_mask
+from fcis.utils import whole_mask2label_mask
 from fcis.utils import whole_mask2mask
 import matplotlib.pyplot as plt
 
@@ -105,7 +107,6 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
                  for anno in annotation])
         else:
             whole_mask = np.zeros((0, H, W), dtype=np.bool)
-        mask = whole_mask2mask(whole_mask, bbox)
 
         crowded = np.array([ann['iscrowd']
                             for ann in annotation], dtype=np.bool)
@@ -126,9 +127,9 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         bbox = bbox[keep_mask]
         label = label[keep_mask]
         crowded = crowded[keep_mask]
-        mask = _index_list_by_mask(mask, keep_mask)
+        whole_mask = whole_mask[keep_mask]
         area = area[keep_mask]
-        return bbox, mask, label, crowded, area
+        return bbox, whole_mask, label, crowded, area
 
     def _segm_to_mask(self, segm, size):
         # Copied from pycocotools.coco.COCO.annToMask
@@ -156,16 +157,18 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img = img[::-1, :, :]  # RGB -> BGR
         _, H, W = img.shape
 
-        bbox, mask, label, crowded, area = self._get_annotations(i)
+        bbox, whole_mask, label, crowded, area = self._get_annotations(i)
 
         if not self.use_crowded:
             bbox = bbox[np.logical_not(crowded)]
             label = label[np.logical_not(crowded)]
-            mask = _index_list_by_mask(mask, np.logical_not(crowded))
+            whole_mask = whole_mask[np.logical_not(crowded)]
             area = area[np.logical_not(crowded)]
             crowded = crowded[np.logical_not(crowded)]
 
-        example = [img, bbox, mask, label]
+        label_mask = whole_mask2label_mask(whole_mask)
+        del whole_mask
+        example = [img, bbox, label_mask, label]
         if self.return_crowded:
             example += [crowded]
         if self.return_area:
@@ -173,10 +176,11 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         return tuple(example)
 
     def visualize(self, i):
-        img, bbox, mask, label = self.get_example(i)
+        img, bbox, label_mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]
         scores = np.ones(len(label))
+        mask = whole_mask2mask(label_mask2whole_mask(label_mask), bbox)
         visualize_mask(img, mask, bbox, label, scores, coco_label_names)
         plt.show()
 
