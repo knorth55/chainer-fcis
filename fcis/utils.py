@@ -87,6 +87,7 @@ def whole_mask2label_mask(mask):
     _, H, W = mask.shape
     label_mask = np.zeros((H, W), dtype=np.int32)
     for i, m in enumerate(mask):
+        # label: 0 is for background
         label = i + 1
         label_mask[m] = label
     return label_mask
@@ -97,6 +98,7 @@ def label_mask2whole_mask(label_mask):
     mask = np.zeros((label_mask.max() + 1, label_mask.size))
     mask[label_mask.ravel(), np.arange(label_mask.size)] = 1
     mask = mask.reshape((-1, H, W))
+    # label: 0 is for background
     mask = mask[1:, :, :]
     return mask
 
