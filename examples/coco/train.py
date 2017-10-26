@@ -75,7 +75,7 @@ class Transform(object):
         self.max_width = max_width
 
     def __call__(self, in_data):
-        orig_img, bboxes, masks, labels = in_data
+        orig_img, bboxes, label_mask, labels = in_data
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
             orig_img, self.target_height, self.max_width)
@@ -87,35 +87,22 @@ class Transform(object):
             bboxes, (orig_H, orig_W), (H, W))
 
         indices = get_keep_indices(bboxes)
-        resized_masks = []
-        for i, (bbox, mask) in enumerate(zip(bboxes, masks)):
-            if i not in indices:
-                continue
-            bbox = np.round(bbox).astype(np.int32)
-            mask_height = bbox[2] - bbox[0]
-            mask_width = bbox[3] - bbox[1]
-            mask = cv2.resize(
-                mask.astype(np.int8),
-                (mask_width, mask_height),
-                interpolation=cv2.INTER_NEAREST)
-            resized_masks.append(mask)
-            del mask
-        del masks
+
+        label_mask = cv2.resize(
+            label_mask, (W, H), interpolation=cv2.INTER_NEAREST)
         bboxes = bboxes[indices, :]
         labels = labels[indices]
 
-        whole_masks = fcis.utils.mask2whole_mask(
-            resized_masks, bboxes, (H, W))
-        del resized_masks
-
         img, params = chainercv.transforms.random_flip(
             img, x_random=True, return_param=True)
-        whole_masks = fcis.utils.flip_mask(
-            whole_masks, x_flip=params['x_flip'])
+        label_mask = label_mask.reshape((1, H, W))
+        label_mask = fcis.utils.flip_mask(
+            label_mask, x_flip=params['x_flip'])
+        label_mask = label_mask.reshape((H, W))
         bboxes = chainercv.transforms.flip_bbox(
             bboxes, (H, W), x_flip=params['x_flip'])
 
-        return img, bboxes, whole_masks, labels, scale
+        return img, bboxes, label_mask, labels, scale
 
 
 def main():
@@ -149,7 +136,7 @@ def main():
     max_width = config.max_width
     random_seed = config.random_seed
     max_epoch = config.max_epoch
-    warm_iter = config.warm_iter
+    warmup_iter = config.warmup_iter
     lr = float(config.lr)
     lr_warmup = config.lr_warmup
     lr_decay_epoch = config.lr_decay_epoch
@@ -208,7 +195,7 @@ def main():
     lr_decay_iter = int(len(train_dataset) * lr_decay_epoch)
     trainer.extend(
         chainer.training.extensions.LinearShift(
-            'lr', (lr_warmup, lr), (warm_iter, warm_iter + 1)))
+            'lr', (lr_warmup, lr), (warmup_iter, warmup_iter + 1)))
     trainer.extend(
         chainer.training.extensions.ExponentialShift('lr', lr_decay_factor),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
