@@ -83,6 +83,24 @@ def whole_mask2mask(whole_mask, bbox):
     return mask
 
 
+def whole_mask2label_mask(mask):
+    _, H, W = mask.shape
+    label_mask = np.zeros((H, W), dtype=np.int32)
+    for i, m in enumerate(mask):
+        label = i + 1
+        label_mask[m] = label
+    return label_mask
+
+
+def label_mask2whole_mask(label_mask):
+    H, W = label_mask.shape
+    mask = np.zeros((label_mask.max() + 1, label_mask.size))
+    mask[label_mask.ravel(), np.arange(label_mask.size)] = 1
+    mask = mask.reshape((-1, H, W))
+    mask = mask[1:, :, :]
+    return mask
+
+
 def read_images(imgpaths, channel_order='BGR'):
     imgs = []
     for imgpath in imgpaths:
