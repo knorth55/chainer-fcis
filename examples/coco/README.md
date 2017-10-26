@@ -9,6 +9,7 @@ Pretrained model can be dowloaded [here](https://drive.google.com/open?id=0B5DV6
 # Pretrained model will be downloaded automatically
 # or run below.
 # python download_models.py
+
 python demo.py
 ```
 
@@ -18,6 +19,7 @@ python demo.py
 # Download datasets manually
 # or run below.
 # python download_datasets.py --val
+
 python evaluate.py --data-dir /your/coco/dataset/dir
 ```
 
@@ -30,4 +32,10 @@ python evaluate.py --data-dir /your/coco/dataset/dir
 
 ## Training
 
-Not Implemented yet
+```bash
+# Download datasets manually
+# or run below.
+# python download_datasets.py --train --val
+
+python train.py --gpu 0
+```
