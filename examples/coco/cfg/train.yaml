@@ -2,8 +2,10 @@ random_seed: 1234
 max_epoch: 8
 target_height: 600
 max_width: 1000
-warmup_iter: 4000
-lr: 0.0005
-lr_warmup: 0.00005
-lr_decay_epoch: 5.33
-lr_decay_factor: 0.1
+lr: 5.0e-3
+# warmup_iter num from begin
+warmup_iter: 160000
+lr_warmup: 5.0e-4
+# cooldown iter num from last
+cooldown_iter: 80000
+lr_cooldown: 5.0e-4
