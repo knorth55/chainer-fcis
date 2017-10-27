@@ -2,10 +2,10 @@ random_seed: 1234
 max_epoch: 8
 target_height: 600
 max_width: 1000
-lr: 5.0e-3
+lr: 1.0e-3
 # warmup_iter num from begin
 warmup_iter: 160000
-lr_warmup: 5.0e-4
+lr_warmup: 1.0e-4
 # cooldown iter num from last
 cooldown_iter: 80000
-lr_cooldown: 5.0e-4
+lr_cooldown: 1.0e-4
