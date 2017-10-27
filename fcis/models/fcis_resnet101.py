@@ -182,6 +182,7 @@ class FCISResNet101(chainer.Chain):
             max_cls_idx = roi_cls_scores.data.argmax(axis=1)
         else:
             max_cls_idx = gt_roi_labels
+        # shape: (n_rois, 2, roi_size, roi_size)
         roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
 
         return roi_seg_scores, roi_locs, roi_cls_scores
