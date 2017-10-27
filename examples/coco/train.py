@@ -159,7 +159,7 @@ def main():
     model.to_gpu()
 
     # optimizer
-    optimizer = chainer.optimizers.MomentumSGD(lr=lr, momentum=0.9)
+    optimizer = chainer.optimizers.MomentumSGD(lr=lr_warmup, momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
@@ -194,11 +194,15 @@ def main():
     # lr scheduler
     trainer.extend(
         chainer.training.extensions.LinearShift(
-            'lr', (lr_warmup, lr), (warmup_iter, warmup_iter + 1)))
+            'lr', (lr_warmup, lr), (warmup_iter, warmup_iter + 1)),
+        trigger=chainer.training.triggers.ManualScheduleTrigger(
+            [warmup_iter], 'iteration'))
     cooldown_iter = len(train_dataset) * max_epoch - cooldown_iter
     trainer.extend(
         chainer.training.extensions.LinearShift(
-            'lr', (lr, lr_cooldown), (cooldown_iter, cooldown_iter + 1)))
+            'lr', (lr, lr_cooldown), (cooldown_iter, cooldown_iter + 1)),
+        trigger=chainer.training.triggers.ManualScheduleTrigger(
+            [cooldown_iter], 'iteration'))
 
     # interval
     save_interval = 1, 'epoch'
