@@ -138,8 +138,8 @@ def main():
     max_epoch = config.max_epoch
     lr = config.lr
     warmup_iter = config.warmup_iter
-    lr_warmup = config.lr_warmup
     cooldown_iter = config.cooldown_iter
+    lr_warmup = config.lr_warmup
     lr_cooldown = config.lr_cooldown
 
     # set random seed
@@ -172,7 +172,7 @@ def main():
 
     # psroi_conv1 lr
     update_rule = chainer.optimizers.momentum_sgd.MomentumSGDRule(
-        lr=optimizer.lr * 3.0, momentum=0.9)
+        lr=lr_warmup * 3.0, momentum=0.9)
     model.fcis.psroi_conv1.W.update_rule = update_rule
     model.fcis.psroi_conv1.b.update_rule = update_rule
 
@@ -192,15 +192,13 @@ def main():
         updater, (max_epoch, 'epoch'), out=out)
 
     # lr scheduler
-    trainer.extend(
-        chainer.training.extensions.LinearShift(
-            'lr', (lr_warmup, lr), (warmup_iter, warmup_iter + 1)),
-        trigger=chainer.training.triggers.ManualScheduleTrigger(
-            [warmup_iter], 'iteration'))
     cooldown_iter = len(train_dataset) * max_epoch - cooldown_iter
     trainer.extend(
-        chainer.training.extensions.LinearShift(
-            'lr', (lr, lr_cooldown), (cooldown_iter, cooldown_iter + 1)),
+        chainer.training.extensions.ExponentialShift('lr', 10.0),
+        trigger=chainer.training.triggers.ManualScheduleTrigger(
+            [warmup_iter], 'iteration'))
+    trainer.extend(
+        chainer.training.extensions.LinearShift('lr', 0.1),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [cooldown_iter], 'iteration'))
 
