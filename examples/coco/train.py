@@ -207,7 +207,7 @@ def main():
     save_interval = 1, 'epoch'
     log_interval = 20, 'iteration'
     # plot_interval = 3000, 'iteration'
-    print_interval = 20, 'iteration'
+    print_interval = 100, 'iteration'
     test_interval = 8, 'epoch'
 
     # logging
