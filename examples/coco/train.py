@@ -139,8 +139,9 @@ def main():
     lr = config.lr
     warmup_iter = config.warmup_iter
     cooldown_iter = config.cooldown_iter
-    lr_warmup = config.lr_warmup
-    lr_cooldown = config.lr_cooldown
+    lr = config.lr
+    lr_warmup_factor = config.lr_warmup_factor
+    lr_cooldown_factor = config.lr_cooldown_factor
 
     # set random seed
     np.random.seed(random_seed)
@@ -159,7 +160,7 @@ def main():
     model.to_gpu()
 
     # optimizer
-    optimizer = chainer.optimizers.MomentumSGD(lr=lr_warmup, momentum=0.9)
+    optimizer = chainer.optimizers.MomentumSGD(lr=lr, momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
@@ -172,7 +173,7 @@ def main():
 
     # psroi_conv1 lr
     update_rule = chainer.optimizers.momentum_sgd.MomentumSGDRule(
-        lr=lr_warmup * 3.0, momentum=0.9)
+        lr=lr * 3.0, momentum=0.9)
     model.fcis.psroi_conv1.W.update_rule = update_rule
     model.fcis.psroi_conv1.b.update_rule = update_rule
 
@@ -194,11 +195,11 @@ def main():
     # lr scheduler
     cooldown_iter = len(train_dataset) * max_epoch - cooldown_iter
     trainer.extend(
-        chainer.training.extensions.ExponentialShift('lr', 10.0),
+        chainer.training.extensions.ExponentialShift('lr', lr_warmup_factor),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [warmup_iter], 'iteration'))
     trainer.extend(
-        chainer.training.extensions.ExponentialShift('lr', 0.1),
+        chainer.training.extensions.ExponentialShift('lr', lr_cooldown_factor),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [cooldown_iter], 'iteration'))
 
