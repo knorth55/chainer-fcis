@@ -75,7 +75,7 @@ class Transform(object):
         self.max_width = max_width
 
     def __call__(self, in_data):
-        orig_img, bboxes, label_mask, labels = in_data
+        orig_img, bboxes, whole_mask, labels = in_data
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
             orig_img, self.target_height, self.max_width)
@@ -88,21 +88,24 @@ class Transform(object):
 
         indices = get_keep_indices(bboxes)
 
-        label_mask = cv2.resize(
-            label_mask, (W, H), interpolation=cv2.INTER_NEAREST)
+        whole_mask = whole_mask.transpose((1, 2, 0))
+        whole_mask = cv2.resize(
+            whole_mask.astype(np.uint8), (W, H),
+            interpolation=cv2.INTER_NEAREST)
         bboxes = bboxes[indices, :]
         labels = labels[indices]
 
         img, params = chainercv.transforms.random_flip(
             img, x_random=True, return_param=True)
-        label_mask = label_mask.reshape((1, H, W))
-        label_mask = fcis.utils.flip_mask(
-            label_mask, x_flip=params['x_flip'])
-        label_mask = label_mask.reshape((H, W))
+        if whole_mask.ndim < 3:
+            whole_mask = whole_mask.reshape((H, W, 1))
+        whole_mask = whole_mask.transpose((2, 0, 1))
+        whole_mask = fcis.utils.flip_mask(
+            whole_mask, x_flip=params['x_flip'])
         bboxes = chainercv.transforms.flip_bbox(
             bboxes, (H, W), x_flip=params['x_flip'])
 
-        return img, bboxes, label_mask, labels, scale
+        return img, bboxes, whole_mask, labels, scale
 
 
 def main():

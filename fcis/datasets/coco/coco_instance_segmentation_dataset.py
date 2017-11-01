@@ -10,9 +10,7 @@ from chainercv import utils
 
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco.coco_utils import get_coco
-from fcis.utils import label_mask2whole_mask
 from fcis.utils import visualize_mask
-from fcis.utils import whole_mask2label_mask
 from fcis.utils import whole_mask2mask
 import matplotlib.pyplot as plt
 
@@ -166,9 +164,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             area = area[np.logical_not(crowded)]
             crowded = crowded[np.logical_not(crowded)]
 
-        label_mask = whole_mask2label_mask(whole_mask)
-        del whole_mask
-        example = [img, bbox, label_mask, label]
+        example = [img, bbox, whole_mask, label]
         if self.return_crowded:
             example += [crowded]
         if self.return_area:
@@ -176,11 +172,11 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         return tuple(example)
 
     def visualize(self, i):
-        img, bbox, label_mask, label = self.get_example(i)
+        img, bbox, whole_mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]
         scores = np.ones(len(label))
-        mask = whole_mask2mask(label_mask2whole_mask(label_mask), bbox)
+        mask = whole_mask2mask(whole_mask, bbox)
         visualize_mask(img, mask, bbox, label, scores, coco_label_names)
         plt.show()
 

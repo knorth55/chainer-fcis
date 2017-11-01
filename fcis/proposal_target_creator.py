@@ -29,11 +29,11 @@ class ProposalTargetCreator(object):
         self.mask_size = mask_size
         self.binary_thresh = binary_thresh
 
-    def __call__(self, rois, bboxes, label_mask, labels):
+    def __call__(self, rois, bboxes, whole_mask, labels):
 
         rois = cuda.to_cpu(rois)
         bboxes = cuda.to_cpu(bboxes)
-        label_mask = cuda.to_cpu(label_mask)
+        whole_mask = cuda.to_cpu(whole_mask)
         labels = cuda.to_cpu(labels)
 
         n_bbox, _ = bboxes.shape
@@ -85,14 +85,11 @@ class ProposalTargetCreator(object):
             (len(keep_indices), self.mask_size, self.mask_size),
             dtype=np.int32)
 
-        masks = fcis.utils.label_mask2whole_mask(label_mask)
-        del label_mask
-
         for i, fg_index in enumerate(fg_indices):
             roi = np.round(sample_rois[i]).astype(np.int32)
             gt_roi = np.round(bboxes[gt_assignment[fg_index]])
             gt_roi = gt_roi.astype(np.int32)
-            gt_mask = masks[gt_assignment[fg_index]]
+            gt_mask = whole_mask[gt_assignment[fg_index]]
             gt_roi_mask = fcis.mask.intersect_bbox_mask(
                 roi, gt_roi, gt_mask)
             gt_roi_mask = cv2.resize(

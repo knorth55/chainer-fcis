@@ -27,11 +27,11 @@ class FCISTrainChain(chainer.Chain):
             loc_normalize_mean=self.loc_normalize_mean,
             loc_normalize_std=self.loc_normalize_std)
 
-    def __call__(self, x, bboxes, label_mask, labels, scale):
+    def __call__(self, x, bboxes, whole_mask, labels, scale):
         if isinstance(bboxes, chainer.Variable):
             bboxes = bboxes.data
-        if isinstance(label_mask, chainer.Variable):
-            label_mask = label_mask.data
+        if isinstance(whole_mask, chainer.Variable):
+            whole_mask = whole_mask.data
         if isinstance(labels, chainer.Variable):
             labels = labels.data
         if isinstance(scale, chainer.Variable):
@@ -44,7 +44,7 @@ class FCISTrainChain(chainer.Chain):
 
         _, _, H, W = x.shape
         img_size = (H, W)
-        assert img_size == label_mask.shape[1:]
+        assert img_size == whole_mask.shape[2:]
 
         with chainer.using_config('train', False):
             h = self.fcis.res1(x)
@@ -63,14 +63,14 @@ class FCISTrainChain(chainer.Chain):
 
         # batch size = 1
         bboxes = bboxes[0]
-        label_mask = label_mask[0]
+        whole_mask = whole_mask[0]
         labels = labels[0]
         rpn_scores = rpn_scores[0]
         rpn_locs = rpn_locs[0]
 
         # Sample RoIs and forward
         sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels = \
-            self.proposal_target_creator(rois, bboxes, label_mask, labels)
+            self.proposal_target_creator(rois, bboxes, whole_mask, labels)
 
         sample_roi_indices = self.xp.zeros(
             (len(sample_rois),), dtype=np.float32)
