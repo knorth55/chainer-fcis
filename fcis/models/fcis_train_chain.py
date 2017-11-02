@@ -12,7 +12,15 @@ import numpy as np
 
 class FCISTrainChain(chainer.Chain):
 
-    def __init__(self, fcis, rpn_sigma=3.0, roi_sigma=1.0):
+    def __init__(
+            self, fcis, rpn_sigma=3.0, roi_sigma=1.0,
+            n_sample=128,
+            loc_normalize_mean=(0., 0., 0., 0.),
+            loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
+            fg_ratio=0.25, fg_iou_thresh=0.5,
+            bg_iou_thresh_hi=0.5, bg_iou_thresh_lo=0.0,
+            mask_size=21, binary_thresh=0.4):
+
         super(FCISTrainChain, self).__init__()
         with self.init_scope():
             self.fcis = fcis
@@ -24,8 +32,13 @@ class FCISTrainChain(chainer.Chain):
 
         self.anchor_target_creator = AnchorTargetCreator()
         self.proposal_target_creator = ProposalTargetCreator(
+            n_sample=n_sample,
             loc_normalize_mean=self.loc_normalize_mean,
-            loc_normalize_std=self.loc_normalize_std)
+            loc_normalize_std=self.loc_normalize_std,
+            fg_ratio=fg_ratio, fg_iou_thresh=fg_iou_thresh,
+            bg_iou_thresh_hi=bg_iou_thresh_hi,
+            bg_iou_thresh_lo=bg_iou_thresh_lo,
+            mask_size=mask_size, binary_thresh=binary_thresh)
 
     def __call__(self, x, bboxes, whole_mask, labels, scale):
         scale = scale[0]
