@@ -101,7 +101,8 @@ class FCISTrainChain(chainer.Chain):
                 sample_indices_and_rois, h_seg, h_locs,
                 gt_roi_labels=gt_roi_labels)
         n_rois = roi_cls_locs.shape[0]
-        roi_locs = roi_cls_locs[self.xp.arange(n_rois), gt_roi_labels]
+        gt_roi_fg_labels = (gt_roi_labels > 0).astype(int)
+        roi_locs = roi_cls_locs[self.xp.arange(n_rois), gt_roi_fg_labels, :]
 
         # FCIS losses
         fcis_loc_loss = _fast_rcnn_loc_loss(
