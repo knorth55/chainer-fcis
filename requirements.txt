@@ -4,4 +4,6 @@ fcn
 easydict
 matplotlib
 numpy
+pillow
 pyyaml
+scipy
