@@ -101,3 +101,4 @@ ENV/
 .mypy_cache/
 
 examples/coco/out/
+examples/voc/out/

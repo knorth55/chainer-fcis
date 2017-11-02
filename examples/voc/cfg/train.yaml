@@ -1,0 +1,18 @@
+random_seed: 1234
+max_epoch: 22
+target_height: 600
+max_width: 1000
+lr: 0.0005 
+# cooldown iter num from last
+cooldown_epoch: 14
+lr_cooldown_factor: 0.1
+bg_iou_thresh_lo: 0.1
+anchor_ratios:
+  - 0.5
+  - 1.0
+  - 2.0
+anchor_scales:
+  - 8
+  - 16
+  - 32
+rpn_min_size: 16
