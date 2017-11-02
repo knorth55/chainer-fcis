@@ -45,7 +45,7 @@ class FCISTrainChain(chainer.Chain):
         h = self.fcis.res4(h)
 
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
-            h, (H, W), scale)
+            h, img_size, scale)
 
         h = self.fcis.res5(h)
 
@@ -59,6 +59,19 @@ class FCISTrainChain(chainer.Chain):
         labels = labels[0]
         rpn_scores = rpn_scores[0]
         rpn_locs = rpn_locs[0]
+
+        # target creator
+        gt_rpn_locs, gt_rpn_labels = self.anchor_target_creator(
+            bboxes, anchor, img_size)
+        gt_rpn_locs = chainer.cuda.to_gpu(gt_rpn_locs)
+        gt_rpn_labels = chainer.cuda.to_gpu(gt_rpn_labels)
+
+        # RPN losses
+        rpn_loc_loss = _fast_rcnn_loc_loss(
+            rpn_locs, gt_rpn_locs, gt_rpn_labels, self.rpn_sigma)
+        rpn_cls_loss = F.softmax_cross_entropy(
+            rpn_scores, gt_rpn_labels)
+        rpn_loss = rpn_loc_loss + rpn_cls_loss
 
         # Sample RoIs and forward
         sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels = \
@@ -74,17 +87,6 @@ class FCISTrainChain(chainer.Chain):
                 sample_indices_and_rois, h_seg, h_locs,
                 gt_roi_labels=gt_roi_labels)
         roi_locs = roi_locs.reshape((len(roi_locs), -1))
-
-        # RPN losses
-        gt_rpn_locs, gt_rpn_labels = self.anchor_target_creator(
-            bboxes, anchor, img_size)
-        gt_rpn_locs = chainer.cuda.to_gpu(gt_rpn_locs)
-        gt_rpn_labels = chainer.cuda.to_gpu(gt_rpn_labels)
-        rpn_loc_loss = _fast_rcnn_loc_loss(
-            rpn_locs, gt_rpn_locs, gt_rpn_labels, self.rpn_sigma)
-        rpn_cls_loss = F.softmax_cross_entropy(
-            rpn_scores, gt_rpn_labels)
-        rpn_loss = rpn_loc_loss + rpn_cls_loss
 
         # FCIS losses
         fcis_loc_loss = _fast_rcnn_loc_loss(
