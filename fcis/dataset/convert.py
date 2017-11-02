@@ -13,9 +13,9 @@ def concat_examples(batch, device=None):
 
     result = []
     for i in six.moves.range(len(first_elem)):
+        array = _concat_arrays([example[i] for example in batch], None)
         if i == 0:  # img
-            result.append(to_device(device, _concat_arrays(
-                [example[i] for example in batch])))
+            result.append(to_device(device, array))
         else:
-            result.append(_concat_arrays([example[i] for example in batch]))
+            result.append(array)
     return tuple(result)
