@@ -1,3 +1,4 @@
+from fcis import dataset  # NOQA
 from fcis import datasets  # NOQA
 from fcis import extensions  # NOQA
 from fcis import functions  # NOQA

@@ -28,15 +28,7 @@ class FCISTrainChain(chainer.Chain):
             loc_normalize_std=self.loc_normalize_std)
 
     def __call__(self, x, bboxes, whole_mask, labels, scale):
-        if isinstance(bboxes, chainer.Variable):
-            bboxes = bboxes.data
-        if isinstance(whole_mask, chainer.Variable):
-            whole_mask = whole_mask.data
-        if isinstance(labels, chainer.Variable):
-            labels = labels.data
-        if isinstance(scale, chainer.Variable):
-            scale = scale.data
-        scale = chainer.cuda.to_cpu(scale)[0]
+        scale = scale[0]
         n = bboxes.shape[0]
         # batch size = 1
         if n != 1:
@@ -86,6 +78,8 @@ class FCISTrainChain(chainer.Chain):
         # RPN losses
         gt_rpn_locs, gt_rpn_labels = self.anchor_target_creator(
             bboxes, anchor, img_size)
+        gt_rpn_locs = chainer.cuda.to_gpu(gt_rpn_locs)
+        gt_rpn_labels = chainer.cuda.to_gpu(gt_rpn_labels)
         rpn_loc_loss = _fast_rcnn_loc_loss(
             rpn_locs, gt_rpn_locs, gt_rpn_labels, self.rpn_sigma)
         rpn_cls_loss = F.softmax_cross_entropy(

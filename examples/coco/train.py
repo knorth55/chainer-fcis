@@ -190,7 +190,8 @@ def main():
     test_iter = chainer.iterators.SerialIterator(
         test_dataset, batch_size=1, repeat=False, shuffle=False)
     updater = chainer.training.updater.StandardUpdater(
-        train_iter, optimizer, device=gpu)
+        train_iter, optimizer, converter=fcis.dataset.concat_examples,
+        device=gpu)
 
     trainer = chainer.training.Trainer(
         updater, (max_epoch, 'epoch'), out=out)
