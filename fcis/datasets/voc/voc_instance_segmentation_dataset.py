@@ -15,12 +15,10 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def __init__(self, data_dir=None, split='train'):
         assert split in ['train', 'val']
 
-        if data_dir is None:
-            self.data_dir = osp.expanduser(
-                '~/data/datasets/VOC/VOCdevkit/VOC2012')
+        if data_dir is not None:
+            self.data_dir = data_dir
 
-        imgsets_path = osp.join(
-            self.data_dir, 'ImageSets/Segmentation/{}.txt'.format(split))
+        imgsets_path = osp.join(self.imgsets_dir, '{}.txt'.format(split))
         with open(imgsets_path) as f:
             data = f.read()
         self.ids = data.split('\n')
@@ -29,6 +27,14 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
     def __len__(self):
         return len(self.ids)
+
+    @property
+    def data_dir(self):
+        return osp.expanduser('~/data/datasets/VOC/VOCdevkit/VOC2012')
+
+    @property
+    def imgsets_dir(self):
+        return osp.join(self.data_dir, 'ImageSets/Segmentation/')
 
     def get_example(self, i):
         data_id = self.ids[i]
