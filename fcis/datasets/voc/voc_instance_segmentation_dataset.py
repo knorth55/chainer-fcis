@@ -12,6 +12,9 @@ import PIL.Image
 
 class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
+    data_dir = osp.expanduser('~/data/datasets/VOC/VOCdevkit/VOC2012')
+    imgsets_dir = osp.join(data_dir, 'ImageSets/Segmentation/')
+
     def __init__(self, data_dir=None, split='train'):
         assert split in ['train', 'val']
 
@@ -27,14 +30,6 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
     def __len__(self):
         return len(self.ids)
-
-    @property
-    def data_dir(self):
-        return osp.expanduser('~/data/datasets/VOC/VOCdevkit/VOC2012')
-
-    @property
-    def imgsets_dir(self):
-        return osp.join(self.data_dir, 'ImageSets/Segmentation/')
 
     def get_example(self, i):
         data_id = self.ids[i]

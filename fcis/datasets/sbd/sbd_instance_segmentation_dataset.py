@@ -10,13 +10,8 @@ this_dir = osp.dirname(osp.realpath(__file__))
 
 class SBDInstanceSegmentationDataset(VOCInstanceSegmentationDataset):
 
-    @property
-    def data_dir(self):
-        return osp.expanduser('~/data/datasets/VOC/benchmark_RELEASE/dataset')
-
-    @property
-    def imgsets_dir(self):
-        return osp.join(this_dir, 'data/')
+    data_dir = osp.expanduser('~/data/datasets/VOC/benchmark_RELEASE/dataset')
+    imgsets_dir = osp.join(this_dir, 'data/')
 
     def _load_data(self, data_id):
         imgpath = osp.join(
