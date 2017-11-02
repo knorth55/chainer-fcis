@@ -97,6 +97,38 @@ class FCISTrainChain(chainer.Chain):
             roi_seg_scores, gt_roi_masks)
         fcis_loss = fcis_loc_loss + fcis_cls_loss + 10.0 * fcis_mask_loss
 
+        # RPN acc
+        rpn_probs = F.softmax(rpn_scores)
+        rpn_probs = rpn_probs.data.argmax(axis=1)
+        rpn_probs = rpn_probs.ravel()
+        gt_rpn_labels = gt_rpn_labels.ravel()
+        keep_indices = self.xp.where(gt_rpn_labels.ravel() != -1)
+        rpn_probs = rpn_probs[keep_indices]
+        gt_rpn_labels = gt_rpn_labels[keep_indices]
+        rpn_acc = (rpn_probs == gt_rpn_labels).sum()
+        rpn_acc = rpn_acc / float(len(gt_rpn_labels))
+
+        # FCIS cls acc
+        roi_cls_probs = F.softmax(roi_cls_scores)
+        roi_cls_probs = roi_cls_probs.data.argmax(axis=1)
+        roi_cls_probs = roi_cls_probs.ravel()
+        gt_roi_labels = gt_roi_labels.ravel()
+        keep_indices = self.xp.where(gt_roi_labels.ravel() != -1)
+        roi_cls_probs = roi_cls_probs[keep_indices]
+        gt_roi_labels = gt_roi_labels[keep_indices]
+        fcis_cls_acc = (roi_cls_probs == gt_roi_labels).sum()
+        fcis_cls_acc = fcis_cls_acc / float(len(gt_roi_labels))
+
+        roi_seg_probs = F.softmax(roi_seg_scores)
+        roi_seg_probs = roi_seg_probs.data.argmax(axis=1)
+        roi_seg_probs = roi_seg_probs.ravel()
+        gt_roi_masks = gt_roi_masks.ravel()
+        keep_indices = self.xp.where(gt_roi_masks.ravel() != -1)
+        roi_seg_probs = roi_seg_probs[keep_indices]
+        gt_roi_masks = gt_roi_masks[keep_indices]
+        fcis_seg_acc = (roi_seg_probs == gt_roi_masks).sum()
+        fcis_seg_acc = fcis_seg_acc / float(len(gt_roi_masks))
+
         # Total loss
         loss = rpn_loss + fcis_loss
         chainer.reporter.report({
@@ -105,7 +137,10 @@ class FCISTrainChain(chainer.Chain):
             'rpn_cls_loss': rpn_cls_loss,
             'fcis_loc_loss': fcis_loc_loss,
             'fcis_cls_loss': fcis_cls_loss,
-            'fcis_mask_loss': fcis_mask_loss
+            'fcis_mask_loss': fcis_mask_loss,
+            'rpn_acc': rpn_acc,
+            'fcis_cls_acc': fcis_cls_acc,
+            'fcis_seg_acc': fcis_seg_acc,
         }, self)
         return loss
 

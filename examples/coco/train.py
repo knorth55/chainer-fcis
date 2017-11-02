@@ -246,6 +246,9 @@ def main():
         'main/fcis_loc_loss',
         'main/fcis_cls_loss',
         'main/fcis_mask_loss',
+        'main/rpn_acc',
+        'main/fcis_cls_acc',
+        'main/fcis_seg_acc',
         'validation/main/mAP[0.50:0.95]',
     ]), trigger=print_interval)
     trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
