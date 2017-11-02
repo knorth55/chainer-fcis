@@ -10,6 +10,7 @@ import cv2
 import datetime
 import easydict
 import fcis
+from fcis.datasets.sbd import SBDInstanceSegmentationDataset
 from fcis.datasets.voc.voc_utils import voc_label_names
 from fcis.datasets.voc import VOCInstanceSegmentationDataset
 import numpy as np
@@ -115,8 +116,12 @@ def main():
     cupy.random.seed(random_seed)
 
     # dataset
-    train_dataset = VOCInstanceSegmentationDataset(split='train')
-    test_dataset = VOCInstanceSegmentationDataset(split='val')
+    if config.use_sbd:
+        dataset_class = SBDInstanceSegmentationDataset
+    else:
+        dataset_class = VOCInstanceSegmentationDataset
+    train_dataset = dataset_class(split='train')
+    test_dataset = dataset_class(split='val')
 
     # model
     n_class = len(voc_label_names)

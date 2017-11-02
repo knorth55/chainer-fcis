@@ -16,3 +16,4 @@ anchor_scales:
   - 16
   - 32
 rpn_min_size: 16
+use_sbd: true
