@@ -141,7 +141,7 @@ def main():
     max_epoch = config.max_epoch
     lr = config.lr
     warmup_iter = config.warmup_iter
-    cooldown_iter = config.cooldown_iter
+    cooldown_epoch = config.cooldown_epoch
     lr = config.lr
     lr_warmup_factor = config.lr_warmup_factor
     lr_cooldown_factor = config.lr_cooldown_factor
@@ -197,7 +197,7 @@ def main():
         updater, (max_epoch, 'epoch'), out=out)
 
     # lr scheduler
-    cooldown_iter = len(train_dataset) * max_epoch - cooldown_iter
+    cooldown_iter = int(cooldown_epoch * len(train_dataset))
     trainer.extend(
         chainer.training.extensions.ExponentialShift('lr', lr_warmup_factor),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
