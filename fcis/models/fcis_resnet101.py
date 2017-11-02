@@ -106,15 +106,15 @@ class FCISResNet101(chainer.Chain):
         h_locs = self.psroi_conv3(h)
 
         # PSROI pooling and regression
-        roi_seg_scores, roi_locs, roi_cls_scores = self._pool_and_predict(
+        roi_seg_scores, roi_cls_locs, roi_cls_scores = self._pool_and_predict(
             indices_and_rois, h_seg, h_locs)
         roi_cls_probs = F.softmax(roi_cls_scores)
         roi_seg_probs = F.softmax(roi_seg_scores)
 
         # 2nd Iteration
         # get rois2 for more precise prediction
-        roi_locs = roi_locs.data
-        roi_locs = roi_locs[:, 1, :]
+        roi_cls_locs = roi_cls_locs.data
+        roi_locs = roi_cls_locs[:, 1, :]
         mean = self.xp.array(self.loc_normalize_mean)
         std = self.xp.array(self.loc_normalize_std)
         roi_locs = roi_locs * std + mean
@@ -171,9 +171,9 @@ class FCISResNet101(chainer.Chain):
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
-        roi_locs = F.average(pool_locs, axis=(2, 3))
-        n_rois = roi_locs.shape[0]
-        roi_locs = roi_locs.reshape((n_rois, 2, 4))
+        roi_cls_locs = F.average(pool_locs, axis=(2, 3))
+        n_rois = roi_cls_locs.shape[0]
+        roi_cls_locs = roi_cls_locs.reshape((n_rois, 2, 4))
 
         # Mask Regression
         # shape: (n_rois, n_class, 2, roi_size, roi_size)
@@ -185,7 +185,7 @@ class FCISResNet101(chainer.Chain):
         # shape: (n_rois, 2, roi_size, roi_size)
         roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
 
-        return roi_seg_scores, roi_locs, roi_cls_scores
+        return roi_seg_scores, roi_cls_locs, roi_cls_scores
 
     def prepare(self, orig_img, target_height=600, max_width=1000):
         img = orig_img.copy()

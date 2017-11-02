@@ -90,16 +90,18 @@ class FCISTrainChain(chainer.Chain):
         sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels = \
             self.proposal_target_creator(rois, bboxes, whole_mask, labels)
 
+        gt_roi_locs = gt_roi_locs
         sample_roi_indices = self.xp.zeros(
             (len(sample_rois),), dtype=np.float32)
         sample_indices_and_rois = self.xp.concatenate(
             (sample_roi_indices[:, None], sample_rois), axis=1)
 
-        roi_seg_scores, roi_locs, roi_cls_scores = \
+        roi_seg_scores, roi_cls_locs, roi_cls_scores = \
             self.fcis._pool_and_predict(
                 sample_indices_and_rois, h_seg, h_locs,
                 gt_roi_labels=gt_roi_labels)
-        roi_locs = roi_locs.reshape((len(roi_locs), -1))
+        n_rois = roi_cls_locs.shape[0]
+        roi_locs = roi_cls_locs[self.xp.arange(n_rois), gt_roi_labels]
 
         # FCIS losses
         fcis_loc_loss = _fast_rcnn_loc_loss(

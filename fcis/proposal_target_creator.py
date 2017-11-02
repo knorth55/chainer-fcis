@@ -77,8 +77,6 @@ class ProposalTargetCreator(object):
             sample_rois, bboxes[gt_assignment[keep_indices]])
         gt_roi_locs = gt_roi_locs - loc_normalize_mean
         gt_roi_locs = gt_roi_locs / loc_normalize_std
-        gt_roi_locs = np.concatenate(
-            (np.zeros((len(gt_roi_locs), 4)), gt_roi_locs), axis=1)
 
         # masks
         gt_roi_masks = -1 * np.ones(
