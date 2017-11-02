@@ -272,12 +272,12 @@ class FCISResNet101(chainer.Chain):
         def copy_bn(bn, orig_bn):
             assert bn.gamma.data.shape == orig_bn.gamma.data.shape
             assert bn.beta.data.shape == orig_bn.beta.data.shape
-            assert bn.avg_var.shape == orig_bn.avg_var.shape
-            assert bn.avg_mean.shape == orig_bn.avg_mean.shape
+            # assert bn.avg_var.shape == orig_bn.avg_var.shape
+            # assert bn.avg_mean.shape == orig_bn.avg_mean.shape
             bn.gamma.data = orig_bn.gamma.data
             bn.beta.data = orig_bn.beta.data
-            bn.avg_var = orig_bn.avg_var
-            bn.avg_mean = orig_bn.avg_mean
+            # bn.avg_var = orig_bn.avg_var
+            # bn.avg_mean = orig_bn.avg_mean
 
         def copy_bottleneck(bottle, orig_bottle, n_conv):
             for i in range(0, n_conv):
