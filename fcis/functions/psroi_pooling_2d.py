@@ -176,13 +176,15 @@ class PSROIPooling2D(function.Function):
             gh = min(max(gh, 0), group_size - 1);
             int c = (ctop * group_size + gh) * group_size + gw;
 
-            int bottom_diff_offset = (roi_batch_ind * channels + c) * height * width;
+            int bottom_diff_offset = (roi_batch_ind * channels + c)
+            bottom_diff_offset = bottom_diff_offset * height * width;
             float bin_area = (hend - hstart) * (wend - wstart);
             float diff_val = is_empty ? (float) 0. : top_diff / bin_area;
             for (int h = hstart; h < hend; ++h){
               for (int w = wstart; w < wend; ++w){
                 int bottom_index = h * width + w;
-                atomicAdd(&bottom_diff[bottom_diff_offset + bottom_index], diff_val);
+                atomicAdd(
+                    &bottom_diff[bottom_diff_offset + bottom_index], diff_val);
               }
             }
             ''', 'psroi_pooling_2d_bwd'
