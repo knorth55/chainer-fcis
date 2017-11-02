@@ -146,24 +146,25 @@ class PSROIPooling2D(function.Function):
             // Force too small ROIs to be 1x1
             float roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
             float roi_height = max(roi_end_h - roi_start_h, 0.1);
-            // Compute w and h at bottom
-            float bin_size_h = roi_height / static_cast<float>(pooled_height);
-            float bin_size_w = roi_width / static_cast<float>(pooled_width);
 
-            int hstart = floor(
-                static_cast<float>(ph) * bin_size_h + roi_start_h);
+            // Compute w and h at bottom
+            float bin_size_w = roi_width / static_cast<float>(pooled_width);
+            float bin_size_h = roi_height / static_cast<float>(pooled_height);
+
             int wstart = floor(
                 static_cast<float>(pw) * bin_size_w + roi_start_w);
-            int hend = ceil(
-                static_cast<float>(ph + 1.) * bin_size_h + roi_start_h);
+            int hstart = floor(
+                static_cast<float>(ph) * bin_size_h + roi_start_h);
             int wend = ceil(
-                static_cast<float>(pw + 1.) * bin_size_w + roi_start_w);
+                static_cast<float>(pw + 1.0) * bin_size_w + roi_start_w);
+            int hend = ceil(
+                static_cast<float>(ph + 1.0) * bin_size_h + roi_start_h);
 
             // Add roi offsets and clip to input boundaries
-            hstart = min(max(hstart, 0), height);
-            hend = min(max(hend, 0), height);
             wstart = min(max(wstart, 0), width);
+            hstart = min(max(hstart, 0), height);
             wend = min(max(wend, 0), width);
+            hend = min(max(hend, 0), height);
             bool is_empty = (hend <= hstart) || (wend <= wstart);
 
             // Compute c at bottom
@@ -175,13 +176,13 @@ class PSROIPooling2D(function.Function):
             gh = min(max(gh, 0), group_size - 1);
             int c = (ctop * group_size + gh) * group_size + gw;
 
-            int data_offset = (roi_batch_ind * channels + c) * height * width;
+            int bottom_diff_offset = (roi_batch_ind * channels + c) * height * width;
             float bin_area = (hend - hstart) * (wend - wstart);
             float diff_val = is_empty ? (float) 0. : top_diff / bin_area;
             for (int h = hstart; h < hend; ++h){
               for (int w = wstart; w < wend; ++w){
                 int bottom_index = h * width + w;
-                atomicAdd(&bottom_diff[data_offset + bottom_index], diff_val);
+                atomicAdd(&bottom_diff[bottom_diff_offset + bottom_index], diff_val);
               }
             }
             ''', 'psroi_pooling_2d_bwd'
