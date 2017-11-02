@@ -26,9 +26,11 @@ install:
 
 before_script:
   - pip install flake8 hacking
+  - pip install -q pytest
 
 script:
   - flake8 .
+  - pytest -vs tests
 
 notifications:
   email: false
