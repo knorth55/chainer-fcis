@@ -69,10 +69,11 @@ def get_keep_indices(bboxes):
 
 class Transform(object):
 
-    def __init__(self, model, target_height, max_width):
+    def __init__(self, model, target_height, max_width, flip=True):
         self.model = model
         self.target_height = target_height
         self.max_width = max_width
+        self.flip = flip
 
     def __call__(self, in_data):
         orig_img, bboxes, whole_mask, labels = in_data
@@ -87,23 +88,25 @@ class Transform(object):
             bboxes, (orig_H, orig_W), (H, W))
 
         indices = get_keep_indices(bboxes)
+        bboxes = bboxes[indices, :]
+        whole_mask = whole_mask[indices, :, :]
+        labels = labels[indices]
 
         whole_mask = whole_mask.transpose((1, 2, 0))
         whole_mask = cv2.resize(
             whole_mask.astype(np.uint8), (W, H),
             interpolation=cv2.INTER_NEAREST)
-        bboxes = bboxes[indices, :]
-        labels = labels[indices]
-
-        img, params = chainercv.transforms.random_flip(
-            img, x_random=True, return_param=True)
         if whole_mask.ndim < 3:
             whole_mask = whole_mask.reshape((H, W, 1))
         whole_mask = whole_mask.transpose((2, 0, 1))
-        whole_mask = fcis.utils.flip_mask(
-            whole_mask, x_flip=params['x_flip'])
-        bboxes = chainercv.transforms.flip_bbox(
-            bboxes, (H, W), x_flip=params['x_flip'])
+
+        if self.flip:
+            img, params = chainercv.transforms.random_flip(
+                img, x_random=True, return_param=True)
+            whole_mask = fcis.utils.flip_mask(
+                whole_mask, x_flip=params['x_flip'])
+            bboxes = chainercv.transforms.flip_bbox(
+                bboxes, (H, W), x_flip=params['x_flip'])
 
         return img, bboxes, whole_mask, labels, scale
 
@@ -183,6 +186,9 @@ def main():
     train_dataset = TransformDataset(
         train_dataset,
         Transform(model.fcis, target_height, max_width))
+    test_dataset = TransformDataset(
+        test_dataset,
+        Transform(model.fcis, target_height, max_width, flip=False))
 
     # iterator
     train_iter = chainer.iterators.SerialIterator(
