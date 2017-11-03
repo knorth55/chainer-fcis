@@ -40,7 +40,7 @@ class FCISTrainChain(chainer.Chain):
             bg_iou_thresh_lo=bg_iou_thresh_lo,
             mask_size=mask_size, binary_thresh=binary_thresh)
 
-    def __call__(self, x, bboxes, whole_mask, labels, scale):
+    def __call__(self, x, bboxes, whole_mask, labels, scale=1.0):
         scale = scale[0]
         n = bboxes.shape[0]
         # batch size = 1
