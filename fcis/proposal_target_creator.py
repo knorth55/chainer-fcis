@@ -12,7 +12,7 @@ import numpy as np
 
 class ProposalTargetCreator(object):
     def __init__(
-            self, n_sample=128,
+            self, n_sample,
             loc_normalize_mean=(0., 0., 0., 0.),
             loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
             fg_ratio=0.25, fg_iou_thresh=0.5,
@@ -39,8 +39,12 @@ class ProposalTargetCreator(object):
         n_bbox, _ = bboxes.shape
 
         rois = np.concatenate((rois, bboxes), axis=0)
+        if self.n_sample is None:
+            n_sample = rois.shape[0]
+        else:
+            n_sample = self.n_sample
 
-        fg_rois_per_image = np.round(self.n_sample * self.fg_ratio)
+        fg_rois_per_image = np.round(n_sample * self.fg_ratio)
         iou = bbox_iou(rois, bboxes)
         gt_assignment = iou.argmax(axis=1)
         max_iou = iou.max(axis=1)
@@ -56,7 +60,7 @@ class ProposalTargetCreator(object):
         # [bg_iou_thresh_lo, bg_iou_thresh_hi).
         bg_indices = np.where((max_iou < self.bg_iou_thresh_hi) &
                               (max_iou >= self.bg_iou_thresh_lo))[0]
-        bg_rois_per_this_image = self.n_sample - fg_rois_per_this_image
+        bg_rois_per_this_image = n_sample - fg_rois_per_this_image
         bg_rois_per_this_image = int(min(bg_rois_per_this_image,
                                          bg_indices.size))
         if bg_indices.size > 0:
@@ -95,7 +99,7 @@ class ProposalTargetCreator(object):
                 interpolation=cv2.INTER_NEAREST)
             gt_roi_mask = gt_roi_mask >= self.binary_thresh
             gt_roi_mask = gt_roi_mask.astype(np.int32)
-            gt_roi_masks[i] = gt_roi_mask
+            gt_roi_masks[i, ...] = gt_roi_mask
 
         # labels
         # The label with value 0 is the background.
