@@ -12,7 +12,7 @@ import easydict
 import fcis
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco import COCOInstanceSegmentationDataset
-from fcis.extensions import InstanceSegmentationCOCOEvaluator
+# from fcis.extensions import InstanceSegmentationCOCOEvaluator
 import numpy as np
 import os
 import os.path as osp
@@ -254,8 +254,10 @@ def main():
         'main/fcis_mask_loss',
         'main/rpn_acc',
         'main/fcis_cls_acc',
-        'main/fcis_seg_acc',
-        'validation/main/mAP[0.50:0.95]',
+        'main/fcis_fg_acc',
+        'validation/main/rpn_acc',
+        'validation/main/fcis_cls_acc',
+        'validation/main/fcis_fg_acc',
     ]), trigger=print_interval)
     trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
 
@@ -267,10 +269,16 @@ def main():
     #         trigger=plot_interval)
 
     trainer.extend(
-        InstanceSegmentationCOCOEvaluator(
-            test_iter, model.fcis,
-            coco_label_names),
+        chainer.training.extensions.Evaluator(
+            test_iter, model, converter=fcis.dataset.concat_examples,
+            device=gpu),
         trigger=test_interval)
+
+    # trainer.extend(
+    #     InstanceSegmentationCOCOEvaluator(
+    #         test_iter, model.fcis,
+    #         coco_label_names),
+    #     trigger=test_interval)
 
     trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
 

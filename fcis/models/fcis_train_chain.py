@@ -135,15 +135,16 @@ class FCISTrainChain(chainer.Chain):
         fcis_cls_acc = (roi_cls_probs == gt_roi_labels).sum()
         fcis_cls_acc = fcis_cls_acc / float(len(gt_roi_labels))
 
-        roi_seg_probs = F.softmax(roi_seg_scores)
-        roi_seg_probs = roi_seg_probs.data.argmax(axis=1)
-        roi_seg_probs = roi_seg_probs.ravel()
-        gt_roi_masks = gt_roi_masks.ravel()
-        keep_indices = self.xp.where(gt_roi_masks.ravel() != -1)
-        roi_seg_probs = roi_seg_probs[keep_indices]
-        gt_roi_masks = gt_roi_masks[keep_indices]
-        fcis_seg_acc = (roi_seg_probs == gt_roi_masks).sum()
-        fcis_seg_acc = fcis_seg_acc / float(len(gt_roi_masks))
+        # FCIS fg acc
+        roi_fg_probs = F.softmax(roi_cls_scores)
+        roi_fg_probs = roi_fg_probs.data.argmax(axis=1)
+        roi_fg_probs = roi_fg_probs.ravel()
+        gt_roi_labels = gt_roi_labels.ravel()
+        keep_indices = self.xp.where(gt_roi_labels.ravel() > 0)
+        roi_fg_probs = roi_fg_probs[keep_indices]
+        gt_roi_labels = gt_roi_labels[keep_indices]
+        fcis_fg_acc = (roi_fg_probs == gt_roi_labels).sum()
+        fcis_fg_acc = fcis_fg_acc / float(len(gt_roi_labels))
 
         # Total loss
         loss = rpn_loss + fcis_loss
@@ -156,7 +157,7 @@ class FCISTrainChain(chainer.Chain):
             'fcis_mask_loss': fcis_mask_loss,
             'rpn_acc': rpn_acc,
             'fcis_cls_acc': fcis_cls_acc,
-            'fcis_seg_acc': fcis_seg_acc,
+            'fcis_fg_acc': fcis_fg_acc,
         }, self)
         return loss
 

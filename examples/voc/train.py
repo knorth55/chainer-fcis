@@ -216,12 +216,17 @@ def main():
         'main/fcis_mask_loss',
         'main/rpn_acc',
         'main/fcis_cls_acc',
-        'main/fcis_seg_acc',
+        'main/fcis_fg_acc',
+        'validation/main/rpn_acc',
+        'validation/main/fcis_cls_acc',
+        'validation/main/fcis_fg_acc',
     ]), trigger=print_interval)
     trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
 
     trainer.extend(
-        chainer.training.extensions.Evaluator(test_iter, model),
+        chainer.training.extensions.Evaluator(
+            test_iter, model, converter=fcis.dataset.concat_examples,
+            device=gpu),
         trigger=test_interval)
 
     trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
