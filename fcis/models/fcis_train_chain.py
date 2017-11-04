@@ -90,7 +90,6 @@ class FCISTrainChain(chainer.Chain):
         sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels = \
             self.proposal_target_creator(rois, bboxes, whole_mask, labels)
 
-        gt_roi_locs = gt_roi_locs
         sample_roi_indices = self.xp.zeros(
             (len(sample_rois),), dtype=np.float32)
         sample_indices_and_rois = self.xp.concatenate(
