@@ -130,13 +130,14 @@ def main():
     n_class = len(voc_label_names)
     fcis_model = fcis.models.FCISResNet101(
         n_class,
-        ratios=config.anchor_ratios,
-        anchor_scales=config.anchor_scales,
-        rpn_min_size=config.rpn_min_size)
+        ratios=(0.5, 1.0, 2.0),
+        anchor_scales=(8, 16, 32),
+        rpn_min_size=16)
     fcis_model.init_weight()
     model = fcis.models.FCISTrainChain(
         fcis_model,
-        bg_iou_thresh_lo=config.bg_iou_thresh_lo)
+        n_sample=128,
+        bg_iou_thresh_lo=0.1)
     model.to_gpu()
 
     # optimizer
@@ -185,7 +186,6 @@ def main():
     # interval
     save_interval = 1, 'epoch'
     log_interval = 20, 'iteration'
-    # plot_interval = 3000, 'iteration'
     print_interval = 20, 'iteration'
     test_interval = 8, 'epoch'
 
