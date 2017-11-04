@@ -146,12 +146,12 @@ class FCISResNet101(chainer.Chain):
             self, indices_and_rois, h_seg, h_locs, gt_roi_labels=None):
         # PSROI Pooling
         # shape: (n_rois, n_class*2, roi_size, roi_size)
-        pool_seg = _psroi_pooling_2d_yx(
+        pool_cls_seg = _psroi_pooling_2d_yx(
             h_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
         # shape: (n_rois, n_class, 2, roi_size, roi_size)
-        pool_seg = pool_seg.reshape(
+        pool_cls_seg = pool_cls_seg.reshape(
             (-1, self.n_class, 2, self.roi_size, self.roi_size))
         # shape: (n_rois, 2*4, roi_size, roi_size)
         pool_locs = _psroi_pooling_2d_yx(
@@ -162,16 +162,16 @@ class FCISResNet101(chainer.Chain):
         # Classfication
         # Group Max
         # shape: (n_rois, n_class, roi_size, roi_size)
-        h_cls = F.max(pool_seg, axis=2)
+        h_cls = F.max(pool_cls_seg, axis=2)
 
         n_rois, n_class, _, _ = h_cls.shape
         # Global pooling (vote)
         # shape: (n_rois, n_class)
-        roi_cls_scores = F.average(h_cls, axis=(2, 3))
+        roi_cls_scores = _global_average_pooling_2d(h_cls)
 
         # Bbox Regression
         # shape: (n_rois, 2*4)
-        roi_cls_locs = F.average(pool_locs, axis=(2, 3))
+        roi_cls_locs = _global_average_pooling_2d(pool_locs)
         n_rois = roi_cls_locs.shape[0]
         roi_cls_locs = roi_cls_locs.reshape((n_rois, 2, 4))
 
@@ -183,7 +183,7 @@ class FCISResNet101(chainer.Chain):
         else:
             max_cls_idx = gt_roi_labels
         # shape: (n_rois, 2, roi_size, roi_size)
-        roi_seg_scores = pool_seg[np.arange(len(max_cls_idx)), max_cls_idx]
+        roi_seg_scores = pool_cls_seg[np.arange(len(max_cls_idx)), max_cls_idx]
 
         return roi_seg_scores, roi_cls_locs, roi_cls_scores
 
@@ -317,3 +317,10 @@ def _psroi_pooling_2d_yx(
         x, xy_indices_and_rois, outh, outw, spatial_scale,
         group_size, output_dim)
     return pool
+
+
+def _global_average_pooling_2d(x):
+    n_rois, n_channel, H, W = x.data.shape
+    h = F.average_pooling_2d(x, (H, W), stride=1)
+    h = F.reshape(h, (n_rois, n_channel))
+    return h
