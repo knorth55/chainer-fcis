@@ -47,6 +47,7 @@ class Transform(object):
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
             orig_img, self.target_height, self.max_width)
+        img = img.astype(np.float32)
         del orig_img
         _, H, W = img.shape
         scale = H / orig_H
