@@ -256,7 +256,7 @@ class FCISResNet101(chainer.Chain):
 
     def init_weight(self, resnet101=None):
         if resnet101 is None:
-            resnet101 = chainer.links.ResNet101Layers()
+            resnet101 = chainer.links.ResNet101Layers(pretrained_model='auto')
 
         n_layer_dict = {
             'res2': 3,
@@ -267,17 +267,17 @@ class FCISResNet101(chainer.Chain):
 
         def copy_conv(conv, orig_conv):
             assert conv.W.data.shape == orig_conv.W.data.shape
-            conv.W.data = orig_conv.W.data
+            conv.W.data[:] = orig_conv.W.data
 
         def copy_bn(bn, orig_bn):
             assert bn.gamma.data.shape == orig_bn.gamma.data.shape
             assert bn.beta.data.shape == orig_bn.beta.data.shape
-            # assert bn.avg_var.shape == orig_bn.avg_var.shape
-            # assert bn.avg_mean.shape == orig_bn.avg_mean.shape
-            bn.gamma.data = orig_bn.gamma.data
-            bn.beta.data = orig_bn.beta.data
-            # bn.avg_var = orig_bn.avg_var
-            # bn.avg_mean = orig_bn.avg_mean
+            assert bn.avg_var.shape == orig_bn.avg_var.shape
+            assert bn.avg_mean.shape == orig_bn.avg_mean.shape
+            bn.gamma.data[:] = orig_bn.gamma.data
+            bn.beta.data[:] = orig_bn.beta.data
+            bn.avg_var[:] = orig_bn.avg_var
+            bn.avg_mean[:] = orig_bn.avg_mean
 
         def copy_bottleneck(bottle, orig_bottle, n_conv):
             for i in range(0, n_conv):
@@ -288,7 +288,7 @@ class FCISResNet101(chainer.Chain):
 
                 bn_name = 'bn{}'.format(i + 1)
                 bn = getattr(bottle, bn_name)
-                orig_bn = getattr(bottle, bn_name)
+                orig_bn = getattr(orig_bottle, bn_name)
                 copy_bn(bn, orig_bn)
 
         def copy_block(block, orig_block, res_name):
@@ -300,13 +300,12 @@ class FCISResNet101(chainer.Chain):
                 orig_bottle = getattr(orig_block, 'b{}'.format(i))
                 copy_bottleneck(bottle, orig_bottle, 3)
 
-        with self.init_scope():
-            copy_conv(self.res1.conv1, resnet101.conv1)
-            copy_bn(self.res1.bn1, resnet101.bn1)
-            copy_block(self.res2, resnet101.res2, 'res2')
-            copy_block(self.res3, resnet101.res3, 'res3')
-            copy_block(self.res4, resnet101.res4, 'res4')
-            copy_block(self.res5, resnet101.res5, 'res5')
+        copy_conv(self.res1.conv1, resnet101.conv1)
+        copy_bn(self.res1.bn1, resnet101.bn1)
+        copy_block(self.res2, resnet101.res2, 'res2')
+        copy_block(self.res3, resnet101.res3, 'res3')
+        copy_block(self.res4, resnet101.res4, 'res4')
+        copy_block(self.res5, resnet101.res5, 'res5')
 
 
 def _psroi_pooling_2d_yx(
