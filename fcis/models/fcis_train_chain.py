@@ -52,10 +52,11 @@ class FCISTrainChain(chainer.Chain):
         assert img_size == whole_mask.shape[2:]
 
         with chainer.using_config('train', False):
-            h = self.fcis.res1(x)
-            h = self.fcis.res2(h)
-        h = self.fcis.res3(h)
-        h = self.fcis.res4(h)
+            with chainer.function.no_backprop_mode():
+                h = self.fcis.res1(x)
+                h = self.fcis.res2(h)
+            h = self.fcis.res3(h)
+            h = self.fcis.res4(h)
 
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
             h, img_size, scale)
@@ -105,7 +106,7 @@ class FCISTrainChain(chainer.Chain):
 
         # FCIS losses
         fcis_loc_loss = _fast_rcnn_loc_loss(
-            roi_locs, gt_roi_locs, gt_roi_labels, self.roi_sigma)
+            roi_locs, gt_roi_locs, gt_roi_fg_labels, self.roi_sigma)
         fcis_cls_loss = F.softmax_cross_entropy(
             roi_cls_scores, gt_roi_labels)
         fcis_mask_loss = F.softmax_cross_entropy(
