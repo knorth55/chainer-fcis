@@ -40,6 +40,20 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         labels = labels.astype(np.int32)
         return img, bboxes, masks, labels
 
+    def aspect_grouping(self):
+        horz = []
+        vert = []
+        for data_id in self.ids:
+            img = self._load_data(data_id)[0]
+            _, H, W = img.shape
+            if H > W:
+                horz.append(data_id)
+            else:
+                vert.append(data_id)
+        horz = np.random.permutation(np.asarray(horz))
+        vert = np.random.permutation(np.asarray(vert))
+        self.ids = np.append(horz, vert)
+
     def _load_data(self, data_id):
         imgpath = osp.join(
             self.data_dir, 'JPEGImages/{}.jpg'.format(data_id))
