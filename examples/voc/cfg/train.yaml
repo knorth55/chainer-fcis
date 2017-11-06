@@ -1,9 +1,9 @@
 random_seed: 1234
-max_epoch: 22
+max_epoch: 44
 target_height: 600
 max_width: 1000
 lr: 0.0005 
 # cooldown iter num from last
-cooldown_epoch: 14
+cooldown_epoch: 28
 lr_cooldown_factor: 0.1
 use_sbd: true
