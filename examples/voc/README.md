@@ -1,4 +1,8 @@
-# VOC & SBD instance segmentation
+# Pascal VOC & SBD instance segmentation
+## Dataset
+
+- [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/)
+- [SBD](http://home.bharathh.info/pubs/codes/SBD/download.html)
 
 ## Training
 
