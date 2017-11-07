@@ -80,7 +80,7 @@ class FCISResNet101(chainer.Chain):
             self.psroi_conv3 = L.Convolution2D(
                 1024, group_size*group_size*2*4, 1, 1, 0, initialW=initialW)
 
-    def __call__(self, x, scale=1.0):
+    def __call__(self, x, scale=1.0, iter2=True):
         img_size = x.shape[2:]
 
         # Feature Extractor
@@ -109,35 +109,40 @@ class FCISResNet101(chainer.Chain):
             indices_and_rois, h_seg, h_locs)
         roi_cls_probs = F.softmax(roi_cls_scores)
         roi_seg_probs = F.softmax(roi_seg_scores)
+        roi_seg_probs = roi_seg_probs.data
+        roi_cls_probs = roi_cls_probs.data
 
-        # 2nd Iteration
-        # get rois2 for more precise prediction
-        roi_cls_locs = roi_cls_locs.data
-        roi_locs = roi_cls_locs[:, 1, :]
-        mean = self.xp.array(self.loc_normalize_mean)
-        std = self.xp.array(self.loc_normalize_std)
-        roi_locs = roi_locs * std + mean
-        rois2 = loc2bbox(rois, roi_locs)
-        H, W = img_size
-        rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H)
-        rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W)
+        if iter2:
+            # 2nd Iteration
+            # get rois2 for more precise prediction
+            roi_cls_locs = roi_cls_locs.data
+            roi_locs = roi_cls_locs[:, 1, :]
+            mean = self.xp.array(self.loc_normalize_mean)
+            std = self.xp.array(self.loc_normalize_std)
+            roi_locs = roi_locs * std + mean
+            rois2 = loc2bbox(rois, roi_locs)
+            H, W = img_size
+            rois2[:, 0::2] = self.xp.clip(rois2[:, 0::2], 0, H)
+            rois2[:, 1::2] = self.xp.clip(rois2[:, 1::2], 0, W)
 
-        # PSROI pooling and regression
-        indices_and_rois2 = self.xp.concatenate(
-            (roi_indices[:, None], rois2), axis=1)
-        indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
-        roi_seg_scores2, _, roi_cls_scores2 = self._pool_and_predict(
-            indices_and_rois2, h_seg, h_locs)
-        roi_cls_probs2 = F.softmax(roi_cls_scores2)
-        roi_seg_probs2 = F.softmax(roi_seg_scores2)
+            # PSROI pooling and regression
+            indices_and_rois2 = self.xp.concatenate(
+                (roi_indices[:, None], rois2), axis=1)
+            indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
+            roi_seg_scores2, _, roi_cls_scores2 = self._pool_and_predict(
+                indices_and_rois2, h_seg, h_locs)
+            roi_cls_probs2 = F.softmax(roi_cls_scores2)
+            roi_seg_probs2 = F.softmax(roi_seg_scores2)
+            roi_seg_probs2 = roi_seg_probs2.data
+            roi_cls_probs2 = roi_cls_probs2.data
 
-        # concat 1st and 2nd iteration results
-        rois = self.xp.concatenate((rois, rois2))
-        roi_indices = self.xp.concatenate((roi_indices, roi_indices))
-        roi_cls_probs = self.xp.concatenate(
-            (roi_cls_probs.data, roi_cls_probs2.data))
-        roi_seg_probs = self.xp.concatenate(
-            (roi_seg_probs.data, roi_seg_probs2.data))
+            # concat 1st and 2nd iteration results
+            rois = self.xp.concatenate((rois, rois2))
+            roi_indices = self.xp.concatenate((roi_indices, roi_indices))
+            roi_cls_probs = self.xp.concatenate(
+                (roi_cls_probs, roi_cls_probs2))
+            roi_seg_probs = self.xp.concatenate(
+                (roi_seg_probs, roi_seg_probs2))
 
         return roi_indices, rois, roi_seg_probs, roi_cls_probs
 
@@ -199,7 +204,9 @@ class FCISResNet101(chainer.Chain):
             self, orig_imgs,
             target_height=600, max_width=1000,
             score_thresh=0.7, nms_thresh=0.3,
-            mask_merge_thresh=0.5, binary_thresh=0.4):
+            mask_merge_thresh=0.5, binary_thresh=0.4,
+            min_drop_size=2,
+            iter2=True, mask_voting=True):
 
         masks = []
         bboxes = []
@@ -216,28 +223,51 @@ class FCISResNet101(chainer.Chain):
                     chainer.function.no_backprop_mode():
                 # inference
                 x = chainer.Variable(self.xp.array(img[None]))
-                _, rois, roi_seg_probs, roi_cls_probs = self.__call__(x, scale)
+                _, bbox, seg_prob, cls_prob = self.__call__(
+                    x, scale, iter2=iter2)
 
             # assume that batch_size = 1
-            rois = rois / scale
+            bbox = bbox / scale
 
             # shape: (n_rois, H, W)
-            roi_mask_probs = roi_seg_probs[:, 1, :, :]
+            mask_prob = seg_prob[:, 1, :, :]
 
             # shape: (n_rois, 4)
-            rois[:, 0::2] = cupy.clip(rois[:, 0::2], 0, orig_H)
-            rois[:, 1::2] = cupy.clip(rois[:, 1::2], 0, orig_W)
+            bbox[:, 0::2] = cupy.clip(bbox[:, 0::2], 0, orig_H)
+            bbox[:, 1::2] = cupy.clip(bbox[:, 1::2], 0, orig_W)
 
             # voting
             # cpu voting is only implemented
-            rois = chainer.cuda.to_cpu(rois)
-            roi_cls_probs = chainer.cuda.to_cpu(roi_cls_probs)
-            roi_mask_probs = chainer.cuda.to_cpu(roi_mask_probs)
+            bbox = chainer.cuda.to_cpu(bbox)
+            cls_prob = chainer.cuda.to_cpu(cls_prob)
+            mask_prob = chainer.cuda.to_cpu(mask_prob)
 
-            bbox, mask_prob, label, cls_prob = fcis.mask.mask_voting(
-                rois, roi_mask_probs, roi_cls_probs, self.n_class,
-                orig_H, orig_W, score_thresh, nms_thresh, mask_merge_thresh,
-                binary_thresh)
+            if mask_voting:
+                bbox, mask_prob, label, cls_prob = fcis.mask.mask_voting(
+                    bbox, mask_prob, cls_prob, self.n_class,
+                    orig_H, orig_W, score_thresh, nms_thresh,
+                    mask_merge_thresh, binary_thresh)
+            else:
+                label = cls_prob.argmax(axis=1)
+                label_mask = label != 0
+                cls_prob = cls_prob[np.arange(len(cls_prob)), label]
+                keep_indices = cls_prob > score_thresh
+                keep_indices = np.logical_and(
+                    label_mask, keep_indices)
+                bbox = bbox[keep_indices]
+                mask_prob = mask_prob[keep_indices]
+                cls_prob = cls_prob[keep_indices]
+                label = label[keep_indices]
+
+            height = bbox[:, 2] - bbox[:, 0]
+            width = bbox[:, 3] - bbox[:, 1]
+            keep_indices = np.where(
+                (height > min_drop_size) & (width > min_drop_size))[0]
+            bbox = bbox[keep_indices]
+            mask_prob = mask_prob[keep_indices]
+            cls_prob = cls_prob[keep_indices]
+            label = label[keep_indices]
+
             mask = fcis.utils.mask_probs2mask(mask_prob, bbox, binary_thresh)
             masks.append(mask)
             bboxes.append(bbox)

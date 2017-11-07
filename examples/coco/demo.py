@@ -36,6 +36,7 @@ def main():
     nms_thresh = config.nms_thresh
     mask_merge_thresh = config.mask_merge_thresh
     binary_thresh = config.binary_thresh
+    min_drop_size = config.min_drop_size
 
     # load label_names
     label_names = fcis.datasets.coco.coco_utils.coco_label_names
@@ -61,7 +62,8 @@ def main():
         bboxes, masks, labels, cls_probs = model.predict(
             [orig_img.transpose((2, 0, 1))],
             target_height, max_width, score_thresh,
-            nms_thresh, mask_merge_thresh, binary_thresh)
+            nms_thresh, mask_merge_thresh, binary_thresh,
+            min_drop_size)
 
         # batch size = 1
         bboxes = bboxes[0]
