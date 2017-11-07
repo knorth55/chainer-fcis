@@ -13,9 +13,6 @@ def main():
         help='Dataset Destination: default $HOME/data/datasets/VOC')
     parser.add_argument('--voc', action='store_true')
     parser.add_argument('--sbd', action='store_true')
-    parser.add_argument('--train', action='store_true')
-    parser.add_argument('--val', action='store_true')
-    parser.add_argument('--all', action='store_true')
     args = parser.parse_args()
 
     data_dir = args.data_dir
@@ -29,12 +26,8 @@ def main():
         download_funcs.append(get_sbd)
 
     for get_dataset in download_funcs:
-        if args.train or args.all:
-            print('Downloading train datasets')
-            get_dataset('train', data_dir)
-        if args.val or args.all:
-            print('Downloading val datasets')
-            get_dataset('val', data_dir)
+        print('Downloading datasets')
+        get_dataset(data_dir)
 
 
 if __name__ == '__main__':

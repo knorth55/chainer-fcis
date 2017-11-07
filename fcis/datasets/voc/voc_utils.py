@@ -35,12 +35,11 @@ def prepare_data(seg_img, ins_img):
     return bboxes, masks, labels
 
 
-def get_voc(split, data_dir=None):
+def get_voc(data_dir=None):
     if data_dir is None:
         data_dir = download.get_dataset_directory(root)
     base_path = osp.join(data_dir, 'VOCdevkit/VOC2012')
-    split_file = osp.join(base_path, 'ImageSets/Main/{}.txt'.format(split))
-    if osp.exists(split_file):
+    if osp.exists(base_path):
         return base_path
 
     download_file_path = utils.cached_download(url)

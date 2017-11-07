@@ -5,7 +5,7 @@
 ```bash
 # Download dataset manually in ~/data/datasets/VOC
 # or run below.
-# python download_datasets.py --sbd --all
+# python download_datasets.py --sbd
 
 python train.py --gpu 0
 ```
@@ -17,6 +17,6 @@ python train.py --gpu 0
 
 ```bash
 # Dataset will be downloaded to ~/data/datasets/VOC
-python download_datasets.py --voc --all
-python download_datasets.py --sbd --all
+python download_datasets.py --voc
+python download_datasets.py --sbd
 ```

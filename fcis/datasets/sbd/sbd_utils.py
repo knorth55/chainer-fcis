@@ -8,12 +8,11 @@ root = 'pfnet/chainercv/sbd'
 url = 'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz'  # NOQA
 
 
-def get_sbd(split, data_dir=None):
+def get_sbd(data_dir=None):
     if data_dir is None:
         data_dir = download.get_dataset_directory(root)
     base_path = osp.join(data_dir, 'benchmark_RELEASE/dataset')
-    split_file = osp.join(base_path, '{}.txt'.format(split))
-    if osp.exists(split_file):
+    if osp.exists(base_path):
         return base_path
 
     download_file_path = utils.cached_download(url)
