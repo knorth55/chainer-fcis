@@ -2,7 +2,7 @@
 
 ## Inference
 
-Pretrained model can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).
+Trained model can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).
 
 ```bash
 # Pretrained model will be downloaded automatically

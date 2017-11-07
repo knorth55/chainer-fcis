@@ -1,5 +1,17 @@
 # Pascal VOC & SBD instance segmentation
 
+## Inference
+
+Trained model can be dowloaded [here](https://drive.google.com/open?id=1wIb2eHEIoBvaOR5OfxX7CsoJxGTIH97T).
+
+```bash
+# Pretrained model will be downloaded automatically
+# or run below.
+# python download_models.py
+
+python demo.py
+```
+
 ## Training
 
 ```bash
