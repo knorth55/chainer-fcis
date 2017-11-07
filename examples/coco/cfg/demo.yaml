@@ -5,3 +5,4 @@ nms_thresh: 0.3
 mask_merge_thresh: 0.5
 binary_thresh: 0.4
 min_drop_size: 2
+iter2: True
