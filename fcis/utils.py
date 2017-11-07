@@ -16,7 +16,8 @@ def visualize_mask(
     ax.cla()
     ax.axis("off")
 
-    cmap = fcn.utils.label_colormap(len(bboxes))
+    cmap = fcn.utils.label_colormap(len(bboxes) + 1)
+    cmap = cmap[1:]
     for color, l, mask, bbox, cls_prob in zip(
             cmap, labels, masks, bboxes, cls_probs):
         color_uint8 = color * 255.0
