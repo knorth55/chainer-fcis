@@ -1,5 +1,13 @@
 import collections
 import numpy as np
+import os.path as osp
+
+from chainer.dataset import download
+from chainercv import utils
+
+
+root = 'pfnet/chainercv/voc'
+url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'  # NOQA
 
 
 def prepare_data(seg_img, ins_img):
@@ -25,6 +33,20 @@ def prepare_data(seg_img, ins_img):
     bboxes = np.array(bboxes)
     masks = np.array(masks)
     return bboxes, masks, labels
+
+
+def get_voc(split, data_dir=None):
+    if data_dir is None:
+        data_dir = download.get_dataset_directory(root)
+    base_path = osp.join(data_dir, 'VOCdevkit/VOC2012')
+    split_file = osp.join(base_path, 'ImageSets/Main/{}.txt'.format(split))
+    if osp.exists(split_file):
+        return base_path
+
+    download_file_path = utils.cached_download(url)
+    ext = osp.splitext(url)[1]
+    utils.extractall(download_file_path, data_dir, ext)
+    return base_path
 
 
 voc_label_names = [
