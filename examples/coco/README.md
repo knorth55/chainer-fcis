@@ -15,7 +15,7 @@ python demo.py
 ## Training
 
 ```bash
-# Download datasets manually
+# Download datasets manually in ~/data/datasets/coco
 # or run below.
 # python download_datasets.py --all
 
@@ -27,7 +27,7 @@ python train.py --gpu 0
 ### Inference
 
 ```bash
-# Download datasets manually
+# Download datasets manually in ~/data/datasets/coco
 # or run below.
 # python download_datasets.py --val
 

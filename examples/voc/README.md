@@ -3,7 +3,10 @@
 ## Training
 
 ```bash
-# Download dataset in ~/data/datasets/VOC
+# Download dataset manually in ~/data/datasets/VOC
+# or run below.
+# python download_datasets.py --sbd --all
+
 python train.py --gpu 0
 ```
 
