@@ -20,8 +20,7 @@ class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
     mean_bgr = np.array([103.06, 115.90, 123.15])
-    pretrained_model = osp.expanduser(
-        '~/data/models/chainer/fcis_coco.npz')
+    model_dir = osp.expanduser('~/data/models/chainer/')
 
     def __init__(
             self, n_class=81,
@@ -247,12 +246,16 @@ class FCISResNet101(chainer.Chain):
 
         return bboxes, masks, labels, cls_probs
 
-    @classmethod
-    def download(cls):
-        return fcn.data.cached_download(
-            url='https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M',  # NOQA
-            path=cls.pretrained_model,
-            md5='689f9f01e7ee37f591b218e49c6686fb')
+    def download(self, dataset='coco'):
+        if dataset == 'voc':
+            url = 'https://drive.google.com/uc?id=1wIb2eHEIoBvaOR5OfxX7CsoJxGTIH97T'  # NOQA
+            path = osp.join(self.model_dir, 'fcis_voc.npz')
+            md5 = '85f6d54e0d3c994fad52732e9119eddb'
+        else:
+            url = 'https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M'
+            path = osp.join(self.model_dir, 'fcis_coco.npz')
+            md5 = '689f9f01e7ee37f591b218e49c6686fb'
+        return fcn.data.cached_download(url=url, path=path, md5=md5)
 
     def init_weight(self, resnet101=None):
         if resnet101 is None:

@@ -45,7 +45,7 @@ def main():
     model = fcis.models.FCISResNet101(n_class)
     modelpath = args.modelpath
     if modelpath is None:
-        modelpath = model.download()
+        modelpath = model.download('coco')
     chainer.serializers.load_npz(modelpath, model)
     model.to_gpu(gpu)
 
