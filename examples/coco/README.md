@@ -1,5 +1,7 @@
 # COCO instance segmentation
 
+![Example](../../static/coco_example.png)
+
 ## Inference
 
 Trained model can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).

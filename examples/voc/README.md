@@ -1,5 +1,7 @@
 # Pascal VOC & SBD instance segmentation
 
+![Example](../../static/voc_example.png)
+
 ## Inference
 
 Trained model can be dowloaded [here](https://drive.google.com/open?id=1wIb2eHEIoBvaOR5OfxX7CsoJxGTIH97T).

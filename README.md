@@ -2,7 +2,7 @@ chainer-fcis - FCIS
 ===================
 ![Build Status](https://travis-ci.org/knorth55/chainer-fcis.svg?branch=master)
 
-![Example](static/example.png)
+![Example](static/coco_example.png)
 
 This is [Chainer](https://github.com/chainer/chainer) implementation of [Fully Convolutional Instance-aware Semantic Segmentation](https://arxiv.org/abs/1611.07709).
 
