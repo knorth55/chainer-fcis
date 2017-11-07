@@ -143,7 +143,7 @@ def flip_mask(mask, x_flip=False, y_flip=False):
 def mask_probs2mask(mask_probs, bboxes, binary_thresh=0.4):
     masks = []
     for mask_prob, bbox in zip(mask_probs, bboxes):
-        bbox = bbox.astype(np.int32)
+        bbox = np.round(bbox).astype(np.int32)
         y_min, x_min, y_max, x_max = bbox
         mask = cv2.resize(mask_prob, (x_max - x_min, y_max - y_min))
         mask = mask >= binary_thresh
