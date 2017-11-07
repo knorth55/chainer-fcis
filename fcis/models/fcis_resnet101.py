@@ -266,10 +266,12 @@ class FCISResNet101(chainer.Chain):
         }
 
         def copy_conv(conv, orig_conv):
+            assert conv is not orig_conv
             assert conv.W.data.shape == orig_conv.W.data.shape
             conv.W.data[:] = orig_conv.W.data
 
         def copy_bn(bn, orig_bn):
+            assert bn is not orig_bn
             assert bn.gamma.data.shape == orig_bn.gamma.data.shape
             assert bn.beta.data.shape == orig_bn.beta.data.shape
             assert bn.avg_var.shape == orig_bn.avg_var.shape
