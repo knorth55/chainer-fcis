@@ -61,7 +61,7 @@ def main():
     pred_labels = list()
     pred_scores = list()
     gt_bboxes = list()
-    gt_masks = list()
+    gt_whole_masks = list()
     gt_labels = list()
     gt_crowdeds = list()
     gt_areas = list()
@@ -69,11 +69,11 @@ def main():
     print('start')
     start = time.time()
     for i in range(len(dataset)):
-        img, gt_bbox, gt_mask, gt_label, gt_crowded, gt_area = dataset[i]
+        img, gt_bbox, gt_whole_mask, gt_label, gt_crowded, gt_area = dataset[i]
         _, H, W = img.shape
         sizes.append((H, W))
         gt_bboxes.append(gt_bbox)
-        gt_masks.append(gt_mask)
+        gt_whole_masks.append(gt_whole_mask)
         gt_labels.append(gt_label)
         gt_crowdeds.append(gt_crowded)
         gt_areas.append(gt_area)
@@ -93,7 +93,7 @@ def main():
 
     results = eval_instance_segmentation_coco(
         sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
-        gt_bboxes, gt_masks, gt_labels, gt_crowdeds, gt_areas)
+        gt_bboxes, gt_whole_masks, gt_labels, gt_crowdeds, gt_areas)
 
     keys = [
         'ap/iou=0.50:0.95/area=all/maxDets=100',
