@@ -114,6 +114,7 @@ class Transform(object):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0)
+    parser.add_argument('--gpu-num', default=3)
     parser.add_argument('--out', '-o', default=None)
     parser.add_argument('--config', default=None)
     args = parser.parse_args()
@@ -121,6 +122,13 @@ def main():
     # gpu
     gpu = args.gpu
     chainer.cuda.get_device_from_id(gpu).use()
+    gpu_num = args.gpu_num
+    gpu_slaves = [i for i in range(0, gpu_num) if i != gpu]
+    devices = {}
+    devices['main'] = gpu
+    for i, gpu_slave in enumerate(gpu_slaves):
+        key = 'slave{}'.format(i)
+        devices[key] = gpu_slave
 
     # out
     out = args.out
@@ -163,7 +171,6 @@ def main():
     fcis_model = fcis.models.FCISResNet101(n_class)
     fcis_model.init_weight()
     model = fcis.models.FCISTrainChain(fcis_model)
-    model.to_gpu()
 
     # optimizer
     optimizer = chainer.optimizers.MomentumSGD(lr=lr, momentum=0.9)
@@ -192,12 +199,12 @@ def main():
 
     # iterator
     train_iter = chainer.iterators.SerialIterator(
-        train_dataset, batch_size=1)
+        train_dataset, batch_size=gpu_num)
     test_iter = chainer.iterators.SerialIterator(
         test_dataset, batch_size=1, repeat=False, shuffle=False)
-    updater = chainer.training.updater.StandardUpdater(
+    updater = chainer.training.updater.ParallelUpdater(
         train_iter, optimizer, converter=fcis.dataset.concat_examples,
-        device=gpu)
+        devices=devices)
 
     trainer = chainer.training.Trainer(
         updater, (max_epoch, 'epoch'), out=out)
