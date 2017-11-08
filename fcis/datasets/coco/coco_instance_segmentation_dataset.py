@@ -51,7 +51,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
                 'Please download coco2014 dataset first')
 
         self.img_root = os.path.join(
-            data_dir, 'images', '{}2014'.format(img_split))
+            data_dir, '{}2014'.format(img_split))
         anno_fn = os.path.join(
             data_dir, 'annotations', 'instances_{}2014.json'.format(split))
 
