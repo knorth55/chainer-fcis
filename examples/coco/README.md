@@ -33,7 +33,7 @@ python train.py --gpu 0
 # or run below.
 # python download_datasets.py --val
 
-python evaluate.py --data-dir /your/coco/dataset/dir
+python evaluate.py
 ```
 
 **FCIS ResNet101**

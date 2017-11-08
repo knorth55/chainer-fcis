@@ -18,7 +18,6 @@ filepath = osp.abspath(osp.dirname(__file__))
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data-dir')
     parser.add_argument('--gpu', default=0)
     parser.add_argument('-m', '--modelpath', default=None)
     args = parser.parse_args()
@@ -53,8 +52,8 @@ def main():
     model.to_gpu(gpu)
 
     dataset = fcis.datasets.coco.COCOInstanceSegmentationDataset(
-        data_dir=args.data_dir, split='minival',
-        use_crowded=True, return_crowded=True, return_area=True)
+        split='minival', use_crowded=True,
+        return_crowded=True, return_area=True)
 
     sizes = list()
     pred_bboxes = list()
