@@ -72,6 +72,8 @@ def mask_voting(
     thresh = max(sorted_all_scores[keep_num - 1], 1e-3)
 
     for label in range(0, n_class):
+        if label == 0:
+            continue
         bbox_l = tmp_bbox[label - 1]
         cls_prob_l = tmp_cls_probs[label - 1]
         keep_indices = cls_prob_l > thresh
