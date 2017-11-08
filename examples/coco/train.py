@@ -198,8 +198,9 @@ def main():
         Transform(model.fcis, target_height, max_width, flip=False))
 
     # iterator
-    train_iter = chainer.iterators.SerialIterator(
-        train_dataset, batch_size=gpu_num)
+    train_iter = chainer.iterators.MultiprocessIterator(
+        train_dataset, batch_size=gpu_num, n_processes=None,
+        shared_mem=100000000)
     test_iter = chainer.iterators.SerialIterator(
         test_dataset, batch_size=1, repeat=False, shuffle=False)
     updater = chainer.training.updater.ParallelUpdater(
