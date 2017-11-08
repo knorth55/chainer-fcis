@@ -42,27 +42,41 @@ def mask_voting(
         score_thresh=0.7,
         nms_thresh=0.3,
         mask_merge_thresh=0.5,
-        binary_thresh=0.4):
+        binary_thresh=0.4, max_num=100):
 
     mask_size = mask_probs.shape[-1]
     v_labels = np.empty((0, ), dtype=np.int32)
     v_masks = np.empty((0, mask_size, mask_size), dtype=np.float32)
     v_bboxes = np.empty((0, 4), dtype=np.float32)
     v_cls_probs = np.empty((0, ), dtype=np.float32)
+    all_scores = np.empty((0, ), dtype=np.float32)
 
+    tmp_cls_probs = []
+    tmp_bbox = []
     for label in range(0, n_class):
         if label == 0:
             # l == 0 is background
             continue
         # non maximum suppression
         cls_prob_l = cls_probs[:, label]
-        thresh_mask = cls_prob_l >= 0.001
-        bbox_l = rois[thresh_mask]
-        cls_prob_l = cls_prob_l[thresh_mask]
-        keep = non_maximum_suppression(
-            bbox_l, nms_thresh, cls_prob_l, limit=100)
-        bbox_l = bbox_l[keep]
-        cls_prob_l = cls_prob_l[keep]
+        keep_indices = non_maximum_suppression(
+            rois, nms_thresh, cls_prob_l, limit=max_num)
+        bbox_l = rois[keep_indices]
+        cls_prob_l = cls_prob_l[keep_indices]
+        tmp_bbox.append(bbox_l)
+        tmp_cls_probs.append(cls_prob_l)
+        all_scores = np.concatenate((all_scores, cls_prob_l))
+
+    sorted_all_scores = np.sort(all_scores)[::-1]
+    keep_num = min(len(sorted_all_scores), max_num)
+    thresh = max(sorted_all_scores[keep_num - 1], 1e-3)
+
+    for label in range(0, n_class):
+        bbox_l = tmp_bbox[label - 1]
+        cls_prob_l = tmp_cls_probs[label - 1]
+        keep_indices = cls_prob_l > thresh
+        bbox_l = bbox_l[keep_indices]
+        cls_prob_l = cls_prob_l[keep_indices]
 
         n_bbox_l = len(bbox_l)
         v_mask_l = np.zeros((n_bbox_l, mask_size, mask_size))
