@@ -67,9 +67,9 @@ Training
 --------
 
 ```bash
-cd examples/coco/
+cd examples/voc/
 
-python train.py --gpu 0
+python train.py
 ```
 
 LICENSE
