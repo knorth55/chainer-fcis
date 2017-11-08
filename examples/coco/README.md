@@ -16,6 +16,11 @@ python demo.py
 
 ## Training
 
+### Caution
+
+COCO training requires very long time.
+If you only have 1GPU, I recommend to try VOC training first.
+
 ```bash
 # Download datasets manually in ~/data/datasets/coco
 # or run below.
