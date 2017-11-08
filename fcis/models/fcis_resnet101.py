@@ -109,13 +109,13 @@ class FCISResNet101(chainer.Chain):
             indices_and_rois, h_seg, h_locs)
         roi_cls_probs = F.softmax(roi_cls_scores)
         roi_seg_probs = F.softmax(roi_seg_scores)
-        roi_seg_probs = roi_seg_probs.data
-        roi_cls_probs = roi_cls_probs.data
+        roi_seg_probs = roi_seg_probs.array
+        roi_cls_probs = roi_cls_probs.array
 
         if iter2:
             # 2nd Iteration
             # get rois2 for more precise prediction
-            roi_cls_locs = roi_cls_locs.data
+            roi_cls_locs = roi_cls_locs.array
             roi_locs = roi_cls_locs[:, 1, :]
             mean = self.xp.array(self.loc_normalize_mean)
             std = self.xp.array(self.loc_normalize_std)
@@ -133,8 +133,8 @@ class FCISResNet101(chainer.Chain):
                 indices_and_rois2, h_seg, h_locs)
             roi_cls_probs2 = F.softmax(roi_cls_scores2)
             roi_seg_probs2 = F.softmax(roi_seg_scores2)
-            roi_seg_probs2 = roi_seg_probs2.data
-            roi_cls_probs2 = roi_cls_probs2.data
+            roi_seg_probs2 = roi_seg_probs2.array
+            roi_cls_probs2 = roi_cls_probs2.array
 
             # concat 1st and 2nd iteration results
             rois = self.xp.concatenate((rois, rois2))
@@ -183,7 +183,7 @@ class FCISResNet101(chainer.Chain):
         # shape: (n_rois, n_class, 2, roi_size, roi_size)
         # Group Pick by Score
         if gt_roi_labels is None:
-            max_cls_idx = roi_cls_scores.data.argmax(axis=1)
+            max_cls_idx = roi_cls_scores.array.argmax(axis=1)
         else:
             max_cls_idx = gt_roi_labels
         # shape: (n_rois, 2, roi_size, roi_size)
@@ -300,17 +300,17 @@ class FCISResNet101(chainer.Chain):
 
         def copy_conv(conv, orig_conv):
             assert conv is not orig_conv
-            assert conv.W.data.shape == orig_conv.W.data.shape
-            conv.W.data[:] = orig_conv.W.data
+            assert conv.W.array.shape == orig_conv.W.array.shape
+            conv.W.array[:] = orig_conv.W.array
 
         def copy_bn(bn, orig_bn):
             assert bn is not orig_bn
-            assert bn.gamma.data.shape == orig_bn.gamma.data.shape
-            assert bn.beta.data.shape == orig_bn.beta.data.shape
+            assert bn.gamma.array.shape == orig_bn.gamma.array.shape
+            assert bn.beta.array.shape == orig_bn.beta.array.shape
             assert bn.avg_var.shape == orig_bn.avg_var.shape
             assert bn.avg_mean.shape == orig_bn.avg_mean.shape
-            bn.gamma.data[:] = orig_bn.gamma.data
-            bn.beta.data[:] = orig_bn.beta.data
+            bn.gamma.array[:] = orig_bn.gamma.array
+            bn.beta.array[:] = orig_bn.beta.array
             bn.avg_var[:] = orig_bn.avg_var
             bn.avg_mean[:] = orig_bn.avg_mean
 
@@ -354,7 +354,7 @@ def _psroi_pooling_2d_yx(
 
 
 def _global_average_pooling_2d(x):
-    n_rois, n_channel, H, W = x.data.shape
+    n_rois, n_channel, H, W = x.array.shape
     h = F.average_pooling_2d(x, (H, W), stride=1)
     h = F.reshape(h, (n_rois, n_channel))
     return h

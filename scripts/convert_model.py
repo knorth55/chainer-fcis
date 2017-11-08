@@ -40,8 +40,8 @@ def main():
         # ResNetC1
         if name.startswith('conv1'):
             value = value[:, ::-1, :, :]
-            assert model.res1.conv1.W.data.shape == value.shape, name
-            model.res1.conv1.W.data = value
+            assert model.res1.conv1.W.array.shape == value.shape, name
+            model.res1.conv1.W.array = value
         # ResNetC2-5
         elif name.startswith('res'):
             block_name, branch_name, _ = name.split('_')
@@ -58,8 +58,8 @@ def main():
             res = getattr(model, res_name)
             bottle = getattr(res, bottle_name)
             layer = getattr(bottle, conv_branch[branch_name])
-            assert layer.W.data.shape == value.shape, name
-            layer.W.data = value
+            assert layer.W.array.shape == value.shape, name
+            layer.W.array = value
         # RPN
         elif name.startswith('rpn'):
             _, layer_name, _, data_type = name.split('_')
@@ -79,8 +79,8 @@ def main():
                     value = value.reshape((-1, 4, 512, 1, 1))
                     value = value[:, [1, 0, 3, 2]]
                     value = value.reshape((-1, 512, 1, 1))
-                assert layer.W.data.shape == value.shape, name
-                layer.W.data = value
+                assert layer.W.array.shape == value.shape, name
+                layer.W.array = value
             elif data_type == 'bias':
                 if layer_name == 'cls':
                     value = value.reshape((2, -1))
@@ -90,28 +90,28 @@ def main():
                     value = value.reshape((-1, 4))
                     value = value[:, [1, 0, 3, 2]]
                     value = value.reshape((-1,))
-                assert layer.b.data.shape == value.shape, name
-                layer.b.data = value
+                assert layer.b.array.shape == value.shape, name
+                layer.b.array = value
         # psroi_conv1
         elif name.startswith('conv_new'):
             data_type = name.split('_')[3]
             layer = model.psroi_conv1
             if data_type == 'weight':
-                assert layer.W.data.shape == value.shape, name
-                layer.W.data = value
+                assert layer.W.array.shape == value.shape, name
+                layer.W.array = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.shape, name
-                layer.b.data = value
+                assert layer.b.array.shape == value.shape, name
+                layer.b.array = value
         # psroi_conv2
         elif name.startswith('fcis_cls_seg'):
             data_type = name.split('_')[3]
             layer = model.psroi_conv2
             if data_type == 'weight':
-                assert layer.W.data.shape == value.shape, name
-                layer.W.data = value
+                assert layer.W.array.shape == value.shape, name
+                layer.W.array = value
             elif data_type == 'bias':
-                assert layer.b.data.shape == value.shape, name
-                layer.b.data = value
+                assert layer.b.array.shape == value.shape, name
+                layer.b.array = value
         # psroi_conv3
         elif name.startswith('fcis_bbox'):
             data_type = name.split('_')[2]
@@ -120,24 +120,24 @@ def main():
                 value = value.reshape((2, 4, 7*7, 1024, 1, 1))
                 value = value[:, [1, 0, 3, 2]]
                 value = value.reshape((-1, 1024, 1, 1))
-                assert layer.W.data.shape == value.shape, name
-                layer.W.data = value
+                assert layer.W.array.shape == value.shape, name
+                layer.W.array = value
             elif data_type == 'bias':
                 value = value.reshape((2, 4, 7*7))
                 value = value[:, [1, 0, 3, 2]]
                 value = value.reshape((-1,))
-                assert layer.b.data.shape == value.shape, name
-                layer.b.data = value
+                assert layer.b.array.shape == value.shape, name
+                layer.b.array = value
         else:
             layer_name, branch_name, data_type = name.split('_')
             if layer_name == 'bn':
                 layer = model.res1.bn1
                 if data_type == 'beta':
-                    assert layer.beta.data.shape == value.shape
-                    layer.beta.data = value
+                    assert layer.beta.array.shape == value.shape
+                    layer.beta.array = value
                 elif data_type == 'gamma':
-                    assert layer.gamma.data.shape == value.shape
-                    layer.gamma.data = value
+                    assert layer.gamma.array.shape == value.shape
+                    layer.gamma.array = value
             else:
                 res_name = 'res{}'.format(layer_name[2])
                 block_name = layer_name[3:]
@@ -154,11 +154,11 @@ def main():
                 bottle = getattr(res, bottle_name)
                 layer = getattr(bottle, bn_branch[branch_name])
                 if data_type == 'beta':
-                    assert layer.beta.data.shape == value.shape, name
-                    layer.beta.data = value
+                    assert layer.beta.array.shape == value.shape, name
+                    layer.beta.array = value
                 elif data_type == 'gamma':
-                    assert layer.gamma.shape == value.shape, name
-                    layer.gamma.data = value
+                    assert layer.gamma.array.shape == value.shape, name
+                    layer.gamma.array = value
 
     for name, value in aux_params.items():
         value = value.asnumpy()

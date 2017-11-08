@@ -116,7 +116,7 @@ class FCISTrainChain(chainer.Chain):
 
         # RPN acc
         rpn_probs = F.softmax(rpn_scores)
-        rpn_probs = rpn_probs.data.argmax(axis=1)
+        rpn_probs = rpn_probs.array.argmax(axis=1)
         rpn_probs = rpn_probs.ravel()
         gt_rpn_labels = gt_rpn_labels.ravel()
         keep_indices = self.xp.where(gt_rpn_labels.ravel() != -1)
@@ -127,7 +127,7 @@ class FCISTrainChain(chainer.Chain):
 
         # FCIS cls acc
         roi_cls_probs = F.softmax(roi_cls_scores)
-        roi_cls_probs = roi_cls_probs.data.argmax(axis=1)
+        roi_cls_probs = roi_cls_probs.array.argmax(axis=1)
         roi_cls_probs = roi_cls_probs.ravel()
         gt_roi_labels = gt_roi_labels.ravel()
         keep_indices = self.xp.where(gt_roi_labels.ravel() != -1)
@@ -138,7 +138,7 @@ class FCISTrainChain(chainer.Chain):
 
         # FCIS fg acc
         roi_fg_probs = F.softmax(roi_cls_scores)
-        roi_fg_probs = roi_fg_probs.data.argmax(axis=1)
+        roi_fg_probs = roi_fg_probs.array.argmax(axis=1)
         roi_fg_probs = roi_fg_probs.ravel()
         gt_roi_labels = gt_roi_labels.ravel()
         keep_indices = self.xp.where(gt_roi_labels.ravel() > 0)
@@ -167,7 +167,7 @@ def _smooth_l1_loss(x, t, in_weight, sigma):
     sigma2 = sigma ** 2
     diff = in_weight * (x - t)
     abs_diff = F.absolute(diff)
-    flag = (abs_diff.data < (1. / sigma2)).astype(np.float32)
+    flag = (abs_diff.array < (1. / sigma2)).astype(np.float32)
 
     y = (flag * (sigma2 / 2.) * F.square(diff) +
          (1 - flag) * (abs_diff - 0.5 / sigma2))
