@@ -25,7 +25,7 @@ Additional Requirement
 Notification
 ------------
 - Only GPU implementation, No CPU implementation yet.
-- Large GPU memory around 10GB is required (I use Titan X).
+- Large GPU memory around 10GB is required (Titan X, GeForce 1080Ti).
 
 Installation
 ------------
