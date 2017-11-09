@@ -25,7 +25,7 @@ Additional Requirement
 - For COCO Training
   - [OpenMPI](https://www.open-mpi.org/)
   - [nccl](https://developer.nvidia.com/nccl)
-  - [ChaineMN](https://github.com/chainer/chainermn)
+  - [ChainerMN](https://github.com/chainer/chainermn)
 
 Notification
 ------------

@@ -26,7 +26,7 @@ If you only have 1 GPU, I recommend to try VOC training first.
 - [pycocotools](https://github.com/cocodataset/cocoapi)
 - [OpenMPI](https://www.open-mpi.org/)
 - [nccl](https://developer.nvidia.com/nccl)
-- [ChaineMN](https://github.com/chainer/chainermn)
+- [ChainerMN](https://github.com/chainer/chainermn)
 
 ```bash
 # Download datasets manually in ~/data/datasets/coco
