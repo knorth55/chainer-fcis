@@ -33,7 +33,7 @@ If you only have 1 GPU, I recommend to try VOC training first.
 # or run below.
 # python download_datasets.py --all
 
-python train.py --gpu 0
+python train.py
 ```
 
 ## Evaluation
