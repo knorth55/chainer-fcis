@@ -2,23 +2,25 @@
 from __future__ import division
 
 import argparse
+import datetime
+import easydict
+import numpy as np
+import os
+import os.path as osp
+import shutil
+import yaml
+
 import chainer
 from chainer.datasets import TransformDataset
 import chainercv
 import chainermn
 import cupy
 import cv2
-import datetime
-import easydict
+
 import fcis
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco import COCOInstanceSegmentationDataset
 # from fcis.extensions import InstanceSegmentationCOCOEvaluator
-import numpy as np
-import os
-import os.path as osp
-import shutil
-import yaml
 
 
 filepath = osp.abspath(osp.dirname(__file__))

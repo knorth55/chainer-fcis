@@ -2,22 +2,24 @@
 from __future__ import division
 
 import argparse
-import chainer
-from chainer.datasets import TransformDataset
-import chainercv
-import cupy
-import cv2
 import datetime
 import easydict
-import fcis
-from fcis.datasets.sbd import SBDInstanceSegmentationDataset
-from fcis.datasets.voc.voc_utils import voc_label_names
-from fcis.datasets.voc import VOCInstanceSegmentationDataset
 import numpy as np
 import os
 import os.path as osp
 import shutil
 import yaml
+
+import chainer
+from chainer.datasets import TransformDataset
+import chainercv
+import cupy
+import cv2
+
+import fcis
+from fcis.datasets.sbd import SBDInstanceSegmentationDataset
+from fcis.datasets.voc.voc_utils import voc_label_names
+from fcis.datasets.voc import VOCInstanceSegmentationDataset
 
 
 filepath = osp.abspath(osp.dirname(__file__))
