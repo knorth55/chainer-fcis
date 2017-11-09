@@ -19,8 +19,13 @@ Requirement
 Additional Requirement
 ----------------------
 - For COCO Dataset class
-  - Cython
+  - [Cython](http://cython.org/)
   - [pycocotools](https://github.com/cocodataset/cocoapi)
+  
+- For COCO Training
+  - [OpenMPI](https://www.open-mpi.org/)
+  - [nccl](https://developer.nvidia.com/nccl)
+  - [ChaineMN](https://github.com/chainer/chainermn)
 
 Notification
 ------------
