@@ -19,7 +19,14 @@ python demo.py
 ### Caution
 
 COCO training requires very long time.
-If you only have 1GPU, I recommend to try VOC training first.
+If you only have 1 GPU, I recommend to try VOC training first.
+
+### Requirements 
+- [Cython](http://cython.org/)
+- [pycocotools](https://github.com/cocodataset/cocoapi)
+- [OpenMPI](https://www.open-mpi.org/)
+- [nccl](https://developer.nvidia.com/nccl)
+- [ChaineMN](https://github.com/chainer/chainermn)
 
 ```bash
 # Download datasets manually in ~/data/datasets/coco
