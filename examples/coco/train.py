@@ -186,7 +186,8 @@ def main():
     # dataset
     if comm.rank == 0:
         train_dataset = COCOInstanceSegmentationDataset(split='train')
-        train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
+        train_dataset = remove_zero_bbox(
+            train_dataset, target_height, max_width)
         test_dataset = COCOInstanceSegmentationDataset(split='val')
         train_dataset = TransformDataset(
             train_dataset,
@@ -198,8 +199,10 @@ def main():
         train_dataset = None
         test_dataset = None
 
-    train_dataset = chainermn.scatter_dataset(train_dataset, comm, shuffle=True)
-    test_dataset = chainermn.scatter_dataset(test_dataset, comm, shuffle=False)
+    train_dataset = chainermn.scatter_dataset(
+        train_dataset, comm, shuffle=True)
+    test_dataset = chainermn.scatter_dataset(
+        test_dataset, comm, shuffle=False)
 
     # iterator
     train_iters = chainer.iterators.SerialIterator(train_dataset, batch_size=1)
@@ -259,7 +262,8 @@ def main():
             chainer.training.extensions.snapshot_object(
                 model.fcis,
                 savefun=chainer.serializers.save_npz,
-                filename='%s_model_iter_{.updater.iteration}.npz' % model_name),
+                filename='%s_model_iter_{.updater.iteration}.npz'
+                         % model_name),
             trigger=save_interval)
         trainer.extend(chainer.training.extensions.observe_lr(),
                        trigger=log_interval)
@@ -284,7 +288,8 @@ def main():
             'validation/main/fcis_cls_acc',
             'validation/main/fcis_fg_acc',
         ]), trigger=print_interval)
-        trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
+        trainer.extend(
+            chainer.training.extensions.ProgressBar(update_interval=10))
 
         # if chainer.training.extensions.PlotReport.available():
         #     trainer.extend(
