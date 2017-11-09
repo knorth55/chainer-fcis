@@ -46,7 +46,6 @@ class FCISTrainChain(chainer.Chain):
         # batch size = 1
         if n != 1:
             raise ValueError('Currently only batch size 1 is supported.')
-        chainer.cuda.get_device_from_array(x).use()
 
         _, _, H, W = x.shape
         img_size = (H, W)

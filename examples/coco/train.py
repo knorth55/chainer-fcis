@@ -5,6 +5,7 @@ import argparse
 import chainer
 from chainer.datasets import TransformDataset
 import chainercv
+import chainermn
 import cupy
 import cv2
 import datetime
@@ -113,29 +114,22 @@ class Transform(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', default=0)
-    parser.add_argument('--gpu-num', default=3)
     parser.add_argument('--out', '-o', default=None)
     parser.add_argument('--config', default=None)
     args = parser.parse_args()
 
-    # gpu
-    gpu = args.gpu
-    chainer.cuda.get_device_from_id(gpu).use()
-    gpu_num = args.gpu_num
-    gpu_slaves = [i for i in range(0, gpu_num) if i != gpu]
-    devices = {}
-    devices['main'] = gpu
-    for i, gpu_slave in enumerate(gpu_slaves):
-        key = 'slave{}'.format(i)
-        devices[key] = gpu_slave
+    # gpu communicator
+    comm = chainermn.create_communicator('hierarchical')
+    device = comm.intra_rank
+    chainer.cuda.get_device_from_id(device).use()
 
     # out
     out = args.out
     if out is None:
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         out = osp.join(filepath, 'out', timestamp)
-        os.makedirs(out)
+        if not osp.exists(out):
+            os.makedirs(out)
 
     # config
     cfgpath = args.config
@@ -144,7 +138,8 @@ def main():
     with open(cfgpath, 'r') as f:
         config = easydict.EasyDict(yaml.load(f))
 
-    shutil.copy(cfgpath, osp.join(out, 'train.yaml'))
+    if comm.rank == 0:
+        shutil.copy(cfgpath, osp.join(out, 'train.yaml'))
 
     target_height = config.target_height
     max_width = config.max_width
@@ -161,19 +156,17 @@ def main():
     np.random.seed(random_seed)
     cupy.random.seed(random_seed)
 
-    # dataset
-    train_dataset = COCOInstanceSegmentationDataset(split='train')
-    train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
-    test_dataset = COCOInstanceSegmentationDataset(split='val')
-
     # model
     n_class = len(coco_label_names)
     fcis_model = fcis.models.FCISResNet101(n_class)
     fcis_model.init_weight()
     model = fcis.models.FCISTrainChain(fcis_model)
+    model.to_gpu()
 
     # optimizer
-    optimizer = chainer.optimizers.MomentumSGD(lr=lr, momentum=0.9)
+    optimizer = chainermn.create_multi_node_optimizer(
+        chainer.optimizers.MomentumSGD(lr=lr, momentum=0.9),
+        comm)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
@@ -190,25 +183,33 @@ def main():
     model.fcis.psroi_conv1.W.update_rule = update_rule
     model.fcis.psroi_conv1.b.update_rule = update_rule
 
-    train_dataset = TransformDataset(
-        train_dataset,
-        Transform(model.fcis, target_height, max_width))
-    test_dataset = TransformDataset(
-        test_dataset,
-        Transform(model.fcis, target_height, max_width, flip=False))
+    # dataset
+    if comm.rank == 0:
+        train_dataset = COCOInstanceSegmentationDataset(split='train')
+        train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
+        test_dataset = COCOInstanceSegmentationDataset(split='val')
+        train_dataset = TransformDataset(
+            train_dataset,
+            Transform(model.fcis, target_height, max_width))
+        test_dataset = TransformDataset(
+            test_dataset,
+            Transform(model.fcis, target_height, max_width, flip=False))
+    else:
+        train_dataset = None
+        test_dataset = None
+
+    train_dataset = chainermn.scatter_dataset(train_dataset, comm, shuffle=True)
+    test_dataset = chainermn.scatter_dataset(test_dataset, comm, shuffle=False)
 
     # iterator
-    train_iter = chainer.iterators.MultiprocessIterator(
-        train_dataset, batch_size=gpu_num, n_processes=None,
-        shared_mem=100000000)
+    train_iters = chainer.iterators.SerialIterator(train_dataset, batch_size=1)
     test_iter = chainer.iterators.SerialIterator(
         test_dataset, batch_size=1, repeat=False, shuffle=False)
-    updater = chainer.training.updater.ParallelUpdater(
-        train_iter, optimizer, converter=fcis.dataset.concat_examples,
-        devices=devices)
+    updater = chainer.training.StandardUpdater(
+        train_iters, optimizer, converter=fcis.dataset.concat_examples,
+        device=device)
 
-    trainer = chainer.training.Trainer(
-        updater, (max_epoch, 'epoch'), out=out)
+    trainer = chainer.training.Trainer(updater, (max_epoch, 'epoch'), out=out)
 
     # lr scheduler
     cooldown_iter = int(cooldown_epoch * len(train_dataset))
@@ -228,58 +229,13 @@ def main():
     print_interval = 20, 'iteration'
     test_interval = 8, 'epoch'
 
-    # logging
-    model_name = model.fcis.__class__.__name__
-
-    # trainer.extend(
-    #     chainer.training.extensions.snapshot(
-    #         savefun=chainer.serializers.save_npz,
-    #         filename='%s_trainer_iter_{.updater.iteration}.npz'
-    #                   % model_name),
-    #     trigger=save_interval)
-
     trainer.extend(
-        chainer.training.extensions.snapshot_object(
-            model.fcis,
-            savefun=chainer.serializers.save_npz,
-            filename='%s_model_iter_{.updater.iteration}.npz' % model_name),
-        trigger=save_interval)
-    trainer.extend(chainer.training.extensions.observe_lr(),
-                   trigger=log_interval)
-    trainer.extend(chainer.training.extensions.LogReport(
-        log_name='log.json',
-        trigger=log_interval))
-    trainer.extend(chainer.training.extensions.PrintReport([
-        'iteration',
-        'epoch',
-        'elapsed_time',
-        'lr',
-        'main/loss',
-        'main/rpn_loc_loss',
-        'main/rpn_cls_loss',
-        'main/fcis_loc_loss',
-        'main/fcis_cls_loss',
-        'main/fcis_mask_loss',
-        'main/rpn_acc',
-        'main/fcis_cls_acc',
-        'main/fcis_fg_acc',
-        'validation/main/rpn_acc',
-        'validation/main/fcis_cls_acc',
-        'validation/main/fcis_fg_acc',
-    ]), trigger=print_interval)
-    trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
-
-    # if chainer.training.extensions.PlotReport.available():
-    #     trainer.extend(
-    #         chainer.training.extensions.PlotReport(
-    #             ['main/loss'],
-    #             file_name='loss.png', trigger=plot_interval),
-    #         trigger=plot_interval)
-
-    trainer.extend(
-        chainer.training.extensions.Evaluator(
-            test_iter, model, converter=fcis.dataset.concat_examples,
-            device=gpu),
+        chainermn.create_multi_node_evaluator(
+            chainer.training.extensions.Evaluator(
+                test_iter, model,
+                converter=fcis.dataset.concat_examples,
+                device=device),
+            comm),
         trigger=test_interval)
 
     # trainer.extend(
@@ -288,7 +244,56 @@ def main():
     #         coco_label_names),
     #     trigger=test_interval)
 
-    trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
+    # logging
+    if comm.rank == 0:
+        model_name = model.fcis.__class__.__name__
+
+        # trainer.extend(
+        #     chainer.training.extensions.snapshot(
+        #         savefun=chainer.serializers.save_npz,
+        #         filename='%s_trainer_iter_{.updater.iteration}.npz'
+        #                   % model_name),
+        #     trigger=save_interval)
+
+        trainer.extend(
+            chainer.training.extensions.snapshot_object(
+                model.fcis,
+                savefun=chainer.serializers.save_npz,
+                filename='%s_model_iter_{.updater.iteration}.npz' % model_name),
+            trigger=save_interval)
+        trainer.extend(chainer.training.extensions.observe_lr(),
+                       trigger=log_interval)
+        trainer.extend(chainer.training.extensions.LogReport(
+            log_name='log.json',
+            trigger=log_interval))
+        trainer.extend(chainer.training.extensions.PrintReport([
+            'iteration',
+            'epoch',
+            'elapsed_time',
+            'lr',
+            'main/loss',
+            'main/rpn_loc_loss',
+            'main/rpn_cls_loss',
+            'main/fcis_loc_loss',
+            'main/fcis_cls_loss',
+            'main/fcis_mask_loss',
+            'main/rpn_acc',
+            'main/fcis_cls_acc',
+            'main/fcis_fg_acc',
+            'validation/main/rpn_acc',
+            'validation/main/fcis_cls_acc',
+            'validation/main/fcis_fg_acc',
+        ]), trigger=print_interval)
+        trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
+
+        # if chainer.training.extensions.PlotReport.available():
+        #     trainer.extend(
+        #         chainer.training.extensions.PlotReport(
+        #             ['main/loss'],
+        #             file_name='loss.png', trigger=plot_interval),
+        #         trigger=plot_interval)
+
+        trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
 
     trainer.run()
 
