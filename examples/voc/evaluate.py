@@ -42,7 +42,6 @@ def main():
     binary_thresh = config.binary_thresh
     min_drop_size = config.min_drop_size
     iter2 = config.iter2
-    iou_thresh = 0.5
 
     # load label_names
     n_class = len(voc_label_names)
@@ -92,21 +91,25 @@ def main():
             print('{} / {},   avg speed={:.2f}s'.format(
                 i, len(dataset), (time.time() - start) / (i + 1)))
 
-    results = eval_instance_segmentation_voc(
-        pred_whole_masks, pred_labels, pred_scores,
-        gt_whole_masks, gt_labels, None,
-        iou_thresh=iou_thresh, use_07_metric=True)
+    for iou_thresh in (0.5, 0.7):
+        results = eval_instance_segmentation_voc(
+            pred_whole_masks, pred_labels, pred_scores,
+            gt_whole_masks, gt_labels, None,
+            iou_thresh=iou_thresh, use_07_metric=True)
 
-    print('map@{}={}'.format(iou_thresh, results['map']))
-    for l, label_name in enumerate(voc_label_names):
-        if l == 0:
-            continue
-        try:
-            print('ap@{}/{:s}={}'.format(
-                iou_thresh, label_name, results['ap'][l]))
-        except IndexError:
-            print('ap@{}/{:s}={}'.format(
-                iou_thresh, label_name, np.nan))
+        print('================================')
+        print('iou_thresh={}'.format(iou_thresh))
+        print('map@{}={}'.format(iou_thresh, results['map']))
+        for l, label_name in enumerate(voc_label_names):
+            if l == 0:
+                continue
+            try:
+                print('ap@{}/{:s}={}'.format(
+                    iou_thresh, label_name, results['ap'][l]))
+            except IndexError:
+                print('ap@{}/{:s}={}'.format(
+                    iou_thresh, label_name, np.nan))
+        print('================================')
 
 
 if __name__ == '__main__':
