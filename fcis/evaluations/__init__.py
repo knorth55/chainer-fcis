@@ -1,1 +1,2 @@
 from fcis.evaluations.eval_instance_segmentation_coco import eval_instance_segmentation_coco  # NOQA
+from fcis.evaluations.eval_instance_segmentation_voc import eval_instance_segmentation_voc  # NOQA

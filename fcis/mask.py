@@ -128,3 +128,23 @@ def intersect_bbox_mask(bbox, gt_bbox, gt_mask, mask_size=21):
     gt_clipped_mask = gt_mask[min_y:max_y, min_x:max_x]
     gt_roi_mask[start_y:end_y, start_x:end_x] = gt_clipped_mask
     return gt_roi_mask
+
+
+def get_mask_overlap(mask1, mask2):
+    intersect = np.bitwise_and(mask1, mask2).sum()
+    union = np.bitwise_or(mask1, mask2).sum()
+    return 1.0 * intersect / union
+
+
+def mask_iou(mask1, mask2):
+    if mask1.shape[1:] != mask2.shape[1:]:
+        raise ValueError
+
+    I = len(mask1)
+    J = len(mask2)
+    iou = np.zeros((I, J), dtype=np.float64)
+    for i, m1 in enumerate(mask1):
+        for j, m2 in enumerate(mask2):
+            ov = get_mask_overlap(m1, m2)
+            iou[i, j] = ov
+    return iou
