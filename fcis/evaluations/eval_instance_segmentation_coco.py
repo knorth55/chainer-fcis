@@ -13,10 +13,12 @@ try:
 except ImportError:
     _available = False
 
+import fcis
 
-def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_whole_masks,
+
+def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_masks,
                                     pred_labels, pred_scores,
-                                    gt_bboxes, gt_whole_masks, gt_labels,
+                                    gt_bboxes, gt_masks, gt_labels,
                                     gt_crowdeds=None, gt_areas=None):
     """Evaluate instance segmentation based on evaluation code of MS COCO.
 
@@ -31,7 +33,7 @@ def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_whole_masks,
             to the number of bounding boxes, which may vary among boxes.
             The second axis corresponds to :obj:`y_min, x_min, y_max, x_max`
             of a bounding box.
-        pred_whole_masks (iterable of list of numpy.ndarray)
+        pred_masks (iterable of list of numpy.ndarray)
         pred_labels (iterable of numpy.ndarray): An iterable of labels.
             Similar to :obj:`pred_bboxes`, its index corresponds to an
             index for the base dataset. Its length is :math:`N`.
@@ -45,7 +47,7 @@ def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_whole_masks,
             bounding box whose shape is :math:`(R, 4)`. Note that the number of
             bounding boxes in each image does not need to be same as the number
             of corresponding predicted boxes.
-        gt_whole_masks (iterable of list of numpy.ndarray)
+        gt_masks (iterable of list of numpy.ndarray)
         gt_labels (iterable of numpy.ndarray): An iterable of ground truth
             labels which are organized similarly to :obj:`gt_bboxes`.
         gt_crowdeds (iterable of numpy.ndarray): An iterable of boolean
@@ -73,11 +75,11 @@ def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_whole_masks,
 
     sizes = iter(sizes)
     pred_bboxes = iter(pred_bboxes)
-    pred_whole_masks = iter(pred_whole_masks)
+    pred_masks = iter(pred_masks)
     pred_labels = iter(pred_labels)
     pred_scores = iter(pred_scores)
     gt_bboxes = iter(gt_bboxes)
-    gt_whole_masks = iter(gt_whole_masks)
+    gt_masks = iter(gt_masks)
     gt_labels = iter(gt_labels)
     gt_crowdeds = (iter(gt_crowdeds) if gt_crowdeds is not None
                    else itertools.repeat(None))
@@ -88,14 +90,18 @@ def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_whole_masks,
     pred_anns = list()
     gt_anns = list()
     unique_labels = dict()
-    for i, (size, pred_bbox, pred_whole_mask, pred_label, pred_score,
-            gt_bbox, gt_whole_mask, gt_label,
+    for i, (size, pred_bbox, pred_mask, pred_label, pred_score,
+            gt_bbox, gt_mask, gt_label,
             gt_crowded, gt_area) in enumerate(
                 six.moves.zip(
-                    sizes, pred_bboxes, pred_whole_masks,
+                    sizes, pred_bboxes, pred_masks,
                     pred_labels, pred_scores,
-                    gt_bboxes, gt_whole_masks, gt_labels,
+                    gt_bboxes, gt_masks, gt_labels,
                     gt_crowdeds, gt_areas)):
+
+        pred_whole_mask = fcis.utils.mask2whole_mask(
+            pred_mask, pred_bbox, size)
+        gt_whole_mask = fcis.utils.mask2whole_mask(gt_mask, gt_bbox, size)
         if gt_area is None:
             gt_area = itertools.repeat(None)
         if gt_crowded is None:

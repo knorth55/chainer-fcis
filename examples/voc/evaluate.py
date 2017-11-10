@@ -60,12 +60,13 @@ def main():
 
     dataset = fcis.datasets.sbd.SBDInstanceSegmentationDataset(split='val')
 
+    sizes = list()
     pred_bboxes = list()
-    pred_whole_masks = list()
+    pred_masks = list()
     pred_labels = list()
     pred_scores = list()
     gt_bboxes = list()
-    gt_whole_masks = list()
+    gt_masks = list()
     gt_labels = list()
 
     print('start')
@@ -73,8 +74,11 @@ def main():
     for i in range(0, len(dataset)):
         img, gt_bbox, gt_whole_mask, gt_label = dataset[i]
         _, H, W = img.shape
+        gt_mask = fcis.utils.whole_mask2mask(
+            gt_whole_mask, gt_bbox)
+        sizes.append((H, W))
         gt_bboxes.append(gt_bbox)
-        gt_whole_masks.append(gt_whole_mask)
+        gt_masks.append(gt_mask)
         gt_labels.append(gt_label)
 
         # prediction
@@ -82,8 +86,12 @@ def main():
             [img], target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh,
             min_drop_size, iter2=iter2)
-        pred_bboxes.append(outputs[0][0])
-        pred_whole_masks.append(outputs[1][0])
+        pred_bbox = outputs[0][0]
+        pred_whole_mask = outputs[1][0]
+        pred_mask = fcis.utils.whole_mask2mask(
+            pred_whole_mask, pred_bbox)
+        pred_bboxes.append(pred_bbox)
+        pred_masks.append(pred_mask)
         pred_labels.append(outputs[2][0])
         pred_scores.append(outputs[3][0])
 
@@ -93,8 +101,8 @@ def main():
 
     for iou_thresh in (0.5, 0.7):
         results = eval_instance_segmentation_voc(
-            pred_whole_masks, pred_labels, pred_scores,
-            gt_whole_masks, gt_labels, None,
+            sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
+            gt_bboxes, gt_masks, gt_labels, None,
             iou_thresh=iou_thresh, use_07_metric=True)
 
         print('================================')

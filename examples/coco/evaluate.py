@@ -57,11 +57,11 @@ def main():
 
     sizes = list()
     pred_bboxes = list()
-    pred_whole_masks = list()
+    pred_masks = list()
     pred_labels = list()
     pred_scores = list()
     gt_bboxes = list()
-    gt_whole_masks = list()
+    gt_masks = list()
     gt_labels = list()
     gt_crowdeds = list()
     gt_areas = list()
@@ -71,9 +71,11 @@ def main():
     for i in range(0, len(dataset)):
         img, gt_bbox, gt_whole_mask, gt_label, gt_crowded, gt_area = dataset[i]
         _, H, W = img.shape
+        gt_mask = fcis.utils.whole_mask2mask(
+            gt_whole_mask, gt_bbox)
         sizes.append((H, W))
         gt_bboxes.append(gt_bbox)
-        gt_whole_masks.append(gt_whole_mask)
+        gt_masks.append(gt_mask)
         gt_labels.append(gt_label)
         gt_crowdeds.append(gt_crowded)
         gt_areas.append(gt_area)
@@ -82,8 +84,12 @@ def main():
         outputs = model.predict(
             [img], target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh)
-        pred_bboxes.append(outputs[0][0])
-        pred_whole_masks.append(outputs[1][0])
+        pred_bbox = outputs[0][0]
+        pred_whole_mask = outputs[1][0]
+        pred_mask = fcis.utils.whole_mask2mask(
+            pred_whole_mask, pred_bbox)
+        pred_bboxes.append(pred_bbox)
+        pred_masks.append(pred_mask)
         pred_labels.append(outputs[2][0])
         pred_scores.append(outputs[3][0])
 
@@ -92,8 +98,8 @@ def main():
                 i, len(dataset), (i + 1) / (time.time() - start)))
 
     results = eval_instance_segmentation_coco(
-        sizes, pred_bboxes, pred_whole_masks, pred_labels, pred_scores,
-        gt_bboxes, gt_whole_masks, gt_labels, gt_crowdeds, gt_areas)
+        sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
+        gt_bboxes, gt_masks, gt_labels, gt_crowdeds, gt_areas)
 
     keys = [
         'ap/iou=0.50:0.95/area=all/maxDets=100',
