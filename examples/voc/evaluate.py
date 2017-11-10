@@ -41,7 +41,7 @@ def main():
     mask_merge_thresh = config.mask_merge_thresh
     binary_thresh = config.binary_thresh
     min_drop_size = config.min_drop_size
-    iter2 = config.iter2
+    iter2 = True
 
     # load label_names
     n_class = len(voc_label_names)
