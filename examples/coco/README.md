@@ -33,19 +33,17 @@ If you only have 1 GPU, I recommend to try VOC training first.
 # or run below.
 # python download_datasets.py --all
 
-python train.py
+mpiexec -n <gpu_num> python train.py
 ```
 
 ## Evaluation
-
-### Inference
 
 ```bash
 # Download datasets manually in ~/data/datasets/coco
 # or run below.
 # python download_datasets.py --val
 
-mpiexec -n <gpu_num> python evaluate.py
+python evaluate.py
 ```
 
 **FCIS ResNet101**

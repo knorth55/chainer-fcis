@@ -21,10 +21,20 @@ python demo.py
 # or run below.
 # python download_datasets.py --sbd
 
-python train.py --gpu 0
+python train.py
 ```
 
-## Dataset
+## Evaluation
+
+```bash
+# Download dataset manually in ~/data/datasets/VOC
+# or run below.
+# python download_datasets.py --sbd
+
+python evaluate.py
+```
+
+## Dataset Download
 
 - [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/)
 - [SBD](http://home.bharathh.info/pubs/codes/SBD/download.html)
