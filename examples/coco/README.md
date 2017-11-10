@@ -45,7 +45,7 @@ python train.py
 # or run below.
 # python download_datasets.py --val
 
-python evaluate.py
+mpiexec -n <gpu_num> python evaluate.py
 ```
 
 **FCIS ResNet101**
