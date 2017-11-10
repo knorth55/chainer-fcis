@@ -6,7 +6,7 @@ import chainer
 import chainer.functions as F
 from chainercv.links.model.faster_rcnn.utils.anchor_target_creator import\
     AnchorTargetCreator
-from fcis.proposal_target_creator import ProposalTargetCreator
+from fcis.models.utils import ProposalTargetCreator
 import numpy as np
 
 
