@@ -88,8 +88,8 @@ def main():
         pred_scores.append(outputs[3][0])
 
         if i % 100 == 0:
-            print('{} / {},   avg speed={:.2f}s'.format(
-                i, len(dataset), (time.time() - start) / (i + 1)))
+            print('{} / {}, avg iter/sec={:.2f}'.format(
+                i, len(dataset), (i + 1) / (time.time() - start)))
 
     results = eval_instance_segmentation_coco(
         sizes, pred_bboxes, pred_whole_masks, pred_labels, pred_scores,
