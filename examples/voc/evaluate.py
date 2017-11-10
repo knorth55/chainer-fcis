@@ -100,12 +100,12 @@ def main():
         print('================================')
         print('iou_thresh={}'.format(iou_thresh))
         print('map@{}={}'.format(iou_thresh, results['map']))
-        for l, label_name in enumerate(voc_label_names):
-            if l == 0:
+        for i, label_name in enumerate(voc_label_names):
+            if i == 0:
                 continue
             try:
                 print('ap@{}/{:s}={}'.format(
-                    iou_thresh, label_name, results['ap'][l]))
+                    iou_thresh, label_name, results['ap'][i]))
             except IndexError:
                 print('ap@{}/{:s}={}'.format(
                     iou_thresh, label_name, np.nan))
