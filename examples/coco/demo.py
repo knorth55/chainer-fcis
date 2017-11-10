@@ -60,7 +60,7 @@ def main():
     for orig_img in orig_imgs:
         # prediction
         # H, W, C -> C, H, W
-        bboxes, masks, labels, cls_probs = model.predict(
+        bboxes, whole_masks, labels, cls_probs = model.predict(
             [orig_img.transpose((2, 0, 1))],
             target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh,
@@ -68,13 +68,13 @@ def main():
 
         # batch size = 1
         bboxes = bboxes[0]
-        masks = masks[0]
+        whole_masks = whole_masks[0]
         labels = labels[0]
         cls_probs = cls_probs[0]
 
         # visualization
         fcis.utils.visualize_mask(
-            orig_img[:, :, ::-1], masks, bboxes, labels,
+            orig_img[:, :, ::-1], whole_masks, bboxes, labels,
             cls_probs, label_names)
         plt.show()
 

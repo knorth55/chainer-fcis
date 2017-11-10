@@ -208,8 +208,8 @@ class FCISResNet101(chainer.Chain):
             min_drop_size=2,
             iter2=True, mask_voting=True):
 
-        masks = []
         bboxes = []
+        whole_masks = []
         labels = []
         cls_probs = []
 
@@ -269,12 +269,14 @@ class FCISResNet101(chainer.Chain):
             label = label[keep_indices]
 
             mask = fcis.utils.mask_probs2mask(mask_prob, bbox, binary_thresh)
-            masks.append(mask)
+            whole_mask = fcis.utils.mask2whole_mask(
+                mask, bbox, (orig_H, orig_W))
+            whole_masks.append(whole_mask)
             bboxes.append(bbox)
             labels.append(label)
             cls_probs.append(cls_prob)
 
-        return bboxes, masks, labels, cls_probs
+        return bboxes, whole_masks, labels, cls_probs
 
     def download(self, dataset='coco'):
         if dataset == 'voc':

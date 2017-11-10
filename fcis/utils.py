@@ -5,7 +5,7 @@ import numpy as np
 
 
 def visualize_mask(
-        img, masks, bboxes, labels, cls_probs,
+        img, whole_masks, bboxes, labels, cls_probs,
         label_names, alpha=0.7, bbox_alpha=0.7, ax=None):
 
     viz_img = img.copy()
@@ -18,12 +18,13 @@ def visualize_mask(
 
     cmap = fcn.utils.label_colormap(len(bboxes) + 1)
     cmap = cmap[1:]
-    for color, l, mask, bbox, cls_prob in zip(
-            cmap, labels, masks, bboxes, cls_probs):
+    for color, l, whole_mask, bbox, cls_prob in zip(
+            cmap, labels, whole_masks, bboxes, cls_probs):
         color_uint8 = color * 255.0
         bbox = np.round(bbox).astype(np.int32)
         y_min, x_min, y_max, x_max = bbox
         if y_max > y_min and x_max > x_min:
+            mask = whole_mask2mask(whole_mask[None], bbox[None])[0]
             mask = mask.astype(np.int32)
             mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
             colored_mask = alpha * mask * color_uint8

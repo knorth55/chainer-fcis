@@ -57,7 +57,7 @@ def main():
 
     sizes = list()
     pred_bboxes = list()
-    pred_masks = list()
+    pred_whole_masks = list()
     pred_labels = list()
     pred_scores = list()
     gt_bboxes = list()
@@ -68,7 +68,7 @@ def main():
 
     print('start')
     start = time.time()
-    for i in range(len(dataset)):
+    for i in range(0, len(dataset)):
         img, gt_bbox, gt_whole_mask, gt_label, gt_crowded, gt_area = dataset[i]
         _, H, W = img.shape
         sizes.append((H, W))
@@ -83,7 +83,7 @@ def main():
             [img], target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh)
         pred_bboxes.append(outputs[0][0])
-        pred_masks.append(outputs[1][0])
+        pred_whole_masks.append(outputs[1][0])
         pred_labels.append(outputs[2][0])
         pred_scores.append(outputs[3][0])
 
@@ -92,7 +92,7 @@ def main():
                 i, len(dataset), (time.time() - start) / (i + 1)))
 
     results = eval_instance_segmentation_coco(
-        sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
+        sizes, pred_bboxes, pred_whole_masks, pred_labels, pred_scores,
         gt_bboxes, gt_whole_masks, gt_labels, gt_crowdeds, gt_areas)
 
     keys = [
