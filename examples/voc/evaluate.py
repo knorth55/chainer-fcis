@@ -60,69 +60,71 @@ def main():
 
     dataset = fcis.datasets.sbd.SBDInstanceSegmentationDataset(split='val')
 
-    sizes = list()
-    pred_bboxes = list()
-    pred_masks = list()
-    pred_labels = list()
-    pred_scores = list()
-    gt_bboxes = list()
-    gt_masks = list()
-    gt_labels = list()
-
     print('start')
     start = time.time()
-    for i in range(0, len(dataset)):
-        img, gt_bbox, gt_whole_mask, gt_label = dataset[i]
-        _, H, W = img.shape
-        gt_whole_mask = gt_whole_mask.astype(bool)
-        gt_mask = fcis.utils.whole_mask2mask(
-            gt_whole_mask, gt_bbox)
-        del gt_whole_mask
-        sizes.append((H, W))
-        gt_bboxes.append(gt_bbox)
-        gt_masks.append(gt_mask)
-        gt_labels.append(gt_label)
 
-        # prediction
-        outputs = model.predict(
-            [img], target_height, max_width, score_thresh,
-            nms_thresh, mask_merge_thresh, binary_thresh,
-            min_drop_size, iter2=iter2)
-        del img
-        pred_bbox = outputs[0][0]
-        pred_whole_mask = outputs[1][0]
-        pred_whole_mask = pred_whole_mask.astype(bool)
-        pred_mask = fcis.utils.whole_mask2mask(
-            pred_whole_mask, pred_bbox)
-        del pred_whole_mask
-        pred_bboxes.append(pred_bbox)
-        pred_masks.append(pred_mask)
-        pred_labels.append(outputs[2][0])
-        pred_scores.append(outputs[3][0])
+    def inference_generator(model, dateset):
+        for i in range(0, len(dataset)):
+            img, gt_bbox, gt_whole_mask, gt_label = dataset[i]
+            _, H, W = img.shape
+            size = (H, W)
+            gt_whole_mask = gt_whole_mask.astype(bool)
+            gt_mask = fcis.utils.whole_mask2mask(
+                gt_whole_mask, gt_bbox)
+            del gt_whole_mask
 
-        if (i + 1) % 100 == 0:
-            print('{} / {}, avg iter/sec={:.2f}'.format(
-                i, len(dataset), (i + 1) / (time.time() - start)))
+            # prediction
+            outputs = model.predict(
+                [img], target_height, max_width, score_thresh,
+                nms_thresh, mask_merge_thresh, binary_thresh,
+                min_drop_size, iter2=iter2)
+            del img
+            pred_bbox = outputs[0][0]
+            pred_whole_mask = outputs[1][0]
+            pred_label = outputs[2][0]
+            pred_score = outputs[3][0]
+            pred_whole_mask = pred_whole_mask.astype(bool)
+            pred_mask = fcis.utils.whole_mask2mask(
+                pred_whole_mask, pred_bbox)
+            del pred_whole_mask
 
-    for iou_thresh in (0.5, 0.7):
-        results = eval_instance_segmentation_voc(
-            sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
-            gt_bboxes, gt_masks, gt_labels, None,
-            iou_thresh=iou_thresh, use_07_metric=False)
+            if (i + 1) % 100 == 0:
+                print('{} / {}, avg iter/sec={:.2f}'.format(
+                    i, len(dataset), (i + 1) / (time.time() - start)))
+            yield size, pred_bbox, pred_mask, pred_label, pred_score, \
+                gt_bbox, gt_mask, gt_label, None
 
-        print('================================')
-        print('iou_thresh={}'.format(iou_thresh))
-        print('map@{}={}'.format(iou_thresh, results['map']))
-        for i, label_name in enumerate(voc_label_names):
-            if i == 0:
-                continue
-            try:
-                print('ap@{}/{:s}={}'.format(
-                    iou_thresh, label_name, results['ap'][i]))
-            except IndexError:
-                print('ap@{}/{:s}={}'.format(
-                    iou_thresh, label_name, np.nan))
-        print('================================')
+    generator = inference_generator(model, dataset)
+
+    iou_thresh = (0.5, 0.7)
+    results = eval_instance_segmentation_voc(
+        generator, iou_thresh, use_07_metric=False)
+
+    print('================================')
+    print('iou_thresh={}'.format(0.5))
+    print('map@0.5={}'.format(results['map0.5']))
+    for i, label_name in enumerate(voc_label_names):
+        if i == 0:
+            continue
+        try:
+            print('ap@0.5/{:s}={}'.format(
+                label_name, results['ap0.5'][i]))
+        except IndexError:
+            print('ap@0.5/{:s}={}'.format(
+                label_name, np.nan))
+    print('================================')
+    print('iou_thresh={}'.format(0.7))
+    print('map@0.7={}'.format(results['map0.7']))
+    for i, label_name in enumerate(voc_label_names):
+        if i == 0:
+            continue
+        try:
+            print('ap@0.7/{:s}={}'.format(
+                label_name, results['ap0.7'][i]))
+        except IndexError:
+            print('ap@0.7/{:s}={}'.format(
+                label_name, np.nan))
+    print('================================')
 
 
 if __name__ == '__main__':
