@@ -74,8 +74,10 @@ def main():
     for i in range(0, len(dataset)):
         img, gt_bbox, gt_whole_mask, gt_label = dataset[i]
         _, H, W = img.shape
+        gt_whole_mask = gt_whole_mask.astype(bool)
         gt_mask = fcis.utils.whole_mask2mask(
             gt_whole_mask, gt_bbox)
+        del gt_whole_mask
         sizes.append((H, W))
         gt_bboxes.append(gt_bbox)
         gt_masks.append(gt_mask)
@@ -86,16 +88,19 @@ def main():
             [img], target_height, max_width, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh,
             min_drop_size, iter2=iter2)
+        del img
         pred_bbox = outputs[0][0]
         pred_whole_mask = outputs[1][0]
+        pred_whole_mask = pred_whole_mask.astype(bool)
         pred_mask = fcis.utils.whole_mask2mask(
             pred_whole_mask, pred_bbox)
+        del pred_whole_mask
         pred_bboxes.append(pred_bbox)
         pred_masks.append(pred_mask)
         pred_labels.append(outputs[2][0])
         pred_scores.append(outputs[3][0])
 
-        if i % 100 == 0:
+        if (i + 1) % 100 == 0:
             print('{} / {}, avg iter/sec={:.2f}'.format(
                 i, len(dataset), (i + 1) / (time.time() - start)))
 
@@ -103,7 +108,7 @@ def main():
         results = eval_instance_segmentation_voc(
             sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
             gt_bboxes, gt_masks, gt_labels, None,
-            iou_thresh=iou_thresh, use_07_metric=True)
+            iou_thresh=iou_thresh, use_07_metric=False)
 
         print('================================')
         print('iou_thresh={}'.format(iou_thresh))
