@@ -20,20 +20,18 @@ def mask_aggregation(
 
     y_idx, x_idx = np.where(mask >= binary_thresh)
     if len(y_idx) == 0 or len(x_idx) == 0:
-        new_y_min = np.ceil(H / 2.0).astype(np.int)
-        new_x_min = np.ceil(W / 2.0).astype(np.int)
-        new_y_max = new_y_min + 1
-        new_x_max = new_x_min + 1
+        return None, None
     else:
-        new_y_min = y_idx.min()
-        new_x_min = x_idx.min()
         new_y_max = y_idx.max() + 1
         new_x_max = x_idx.max() + 1
+        new_y_min = y_idx.min()
+        new_x_min = x_idx.min()
 
-    clipped_mask = mask[new_y_min:new_y_max, new_x_min:new_x_max]
-    clipped_bbox = np.array([new_y_min, new_x_min, new_y_max, new_x_max],
-                            dtype=np.float32)
-    return clipped_bbox, clipped_mask
+        clipped_mask = mask[new_y_min:new_y_max, new_x_min:new_x_max]
+        clipped_bbox = np.array(
+            [new_y_min, new_x_min, new_y_max, new_x_max],
+            dtype=np.float32)
+        return clipped_bbox, clipped_mask
 
 
 def mask_voting(
@@ -49,8 +47,8 @@ def mask_voting(
     v_masks = np.empty((0, mask_size, mask_size), dtype=np.float32)
     v_bboxes = np.empty((0, 4), dtype=np.float32)
     v_cls_probs = np.empty((0, ), dtype=np.float32)
-    all_scores = np.empty((0, ), dtype=np.float32)
 
+    tmp_all_scores = np.empty((0, ), dtype=np.float32)
     tmp_cls_probs = []
     tmp_bbox = []
     for label in range(0, n_class):
@@ -65,9 +63,9 @@ def mask_voting(
         cls_prob_l = cls_prob_l[keep_indices]
         tmp_bbox.append(bbox_l)
         tmp_cls_probs.append(cls_prob_l)
-        all_scores = np.concatenate((all_scores, cls_prob_l))
+        tmp_all_scores = np.concatenate((tmp_all_scores, cls_prob_l))
 
-    sorted_all_scores = np.sort(all_scores)[::-1]
+    sorted_all_scores = np.sort(tmp_all_scores)[::-1]
     keep_num = min(len(sorted_all_scores), max_num)
     thresh = max(sorted_all_scores[keep_num - 1], 1e-3)
 
@@ -76,31 +74,35 @@ def mask_voting(
             continue
         bbox_l = tmp_bbox[label - 1]
         cls_prob_l = tmp_cls_probs[label - 1]
-        keep_indices = cls_prob_l > thresh
+        keep_indices = np.where(cls_prob_l >= thresh)
         bbox_l = bbox_l[keep_indices]
         cls_prob_l = cls_prob_l[keep_indices]
 
-        n_bbox_l = len(bbox_l)
-        v_mask_l = np.zeros((n_bbox_l, mask_size, mask_size))
-        v_bbox_l = np.zeros((n_bbox_l, 4))
+        v_mask_l = np.empty((0, mask_size, mask_size), dtype=np.float32)
+        v_bbox_l = np.empty((0, 4), dtype=np.float32)
 
         for i, bbox in enumerate(bbox_l):
             iou = bbox_iou(rois, bbox[np.newaxis, :])
-            idx = np.where(iou > mask_merge_thresh)[0]
+            idx = np.where(iou >= mask_merge_thresh)[0]
             mask_weights = cls_probs[idx, label]
             mask_weights = mask_weights / mask_weights.sum()
             mask_prob_l = mask_probs[idx]
             rois_l = rois[idx]
-            v_bbox_l[i], clipped_mask = mask_aggregation(
+            clipped_bbox, clipped_mask = mask_aggregation(
                 rois_l, mask_prob_l, mask_weights, H, W, binary_thresh)
-            v_mask_l[i] = cv2.resize(
-                clipped_mask.astype(np.float32), (mask_size, mask_size))
+            if clipped_bbox is not None and clipped_mask is not None:
+                clipped_mask = cv2.resize(
+                    clipped_mask.astype(np.float32),
+                    (mask_size, mask_size))
+                v_bbox_l = np.concatenate((v_bbox_l, clipped_bbox[None]))
+                v_mask_l = np.concatenate((v_mask_l, clipped_mask[None]))
 
-        score_thresh_mask = cls_prob_l > score_thresh
-        v_mask_l = v_mask_l[score_thresh_mask]
-        v_bbox_l = v_bbox_l[score_thresh_mask]
+        keep_indices = cls_prob_l > score_thresh
+        v_mask_l = v_mask_l[keep_indices]
+        v_bbox_l = v_bbox_l[keep_indices]
+        v_cls_prob_l = cls_prob_l[keep_indices]
+
         v_label_l = np.repeat(label, v_bbox_l.shape[0])
-        v_cls_prob_l = cls_prob_l[score_thresh_mask]
         v_masks = np.concatenate((v_masks, v_mask_l))
         v_bboxes = np.concatenate((v_bboxes, v_bbox_l))
         v_labels = np.concatenate((v_labels, v_label_l))
