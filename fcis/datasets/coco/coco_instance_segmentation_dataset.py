@@ -11,7 +11,6 @@ from chainercv import utils
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco.coco_utils import get_coco
 from fcis.utils import visualize_mask
-from fcis.utils import whole_mask2mask
 import matplotlib.pyplot as plt
 
 try:
@@ -176,8 +175,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]
         scores = np.ones(len(label))
-        mask = whole_mask2mask(whole_mask, bbox)
-        visualize_mask(img, mask, bbox, label, scores, coco_label_names)
+        visualize_mask(img, whole_mask, bbox, label, scores, coco_label_names)
         plt.show()
 
 

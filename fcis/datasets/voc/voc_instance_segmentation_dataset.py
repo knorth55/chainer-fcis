@@ -3,7 +3,6 @@ import cv2
 from fcis.datasets.voc.voc_utils import prepare_data
 from fcis.datasets.voc.voc_utils import voc_label_names
 from fcis.utils import visualize_mask
-from fcis.utils import whole_mask2mask
 import matplotlib.pyplot as plt
 import numpy as np
 import os.path as osp
@@ -77,6 +76,5 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]
         scores = np.ones(len(label))
-        mask = whole_mask2mask(whole_mask, bbox)
-        visualize_mask(img, mask, bbox, label, scores, voc_label_names)
+        visualize_mask(img, whole_mask, bbox, label, scores, voc_label_names)
         plt.show()
