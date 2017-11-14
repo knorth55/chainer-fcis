@@ -94,7 +94,7 @@ def main():
 
             if (i + 1) % 100 == 0:
                 print('{} / {}, avg iter/sec={:.2f}'.format(
-                    i, len(dataset), (i + 1) / (time.time() - start)))
+                    (i + 1), len(dataset), (i + 1) / (time.time() - start)))
             yield size, pred_bbox, pred_mask, pred_label, pred_score, \
                 gt_bbox, gt_mask, gt_label, None
 
