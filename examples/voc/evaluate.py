@@ -69,6 +69,8 @@ def main():
             _, H, W = img.shape
             size = (H, W)
             gt_whole_mask = gt_whole_mask.astype(bool)
+            # suppress backgroud
+            gt_label = gt_label - 1
             gt_mask = fcis.utils.whole_mask2mask(
                 gt_whole_mask, gt_bbox)
             del gt_whole_mask
@@ -83,6 +85,8 @@ def main():
             pred_whole_mask = outputs[1][0]
             pred_label = outputs[2][0]
             pred_score = outputs[3][0]
+            # suppress backgroud
+            pred_label = pred_label - 1
             pred_whole_mask = pred_whole_mask.astype(bool)
             pred_mask = fcis.utils.whole_mask2mask(
                 pred_whole_mask, pred_bbox)
@@ -108,7 +112,7 @@ def main():
             continue
         try:
             print('ap@0.5/{:s}={}'.format(
-                label_name, results['ap0.5'][i]))
+                label_name, results['ap0.5'][i - 1]))
         except IndexError:
             print('ap@0.5/{:s}={}'.format(
                 label_name, np.nan))
@@ -120,7 +124,7 @@ def main():
             continue
         try:
             print('ap@0.7/{:s}={}'.format(
-                label_name, results['ap0.7'][i]))
+                label_name, results['ap0.7'][i - 1]))
         except IndexError:
             print('ap@0.7/{:s}={}'.format(
                 label_name, np.nan))
