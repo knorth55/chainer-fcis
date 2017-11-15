@@ -16,6 +16,8 @@ python demo.py
 
 ## Training
 
+***Work in progress***
+
 ```bash
 # Download dataset manually in ~/data/datasets/VOC
 # or run below.

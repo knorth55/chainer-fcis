@@ -16,6 +16,8 @@ python demo.py
 
 ## Training
 
+***Work in progress***
+
 ### Caution
 
 COCO training requires very long time.
