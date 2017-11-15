@@ -34,6 +34,14 @@ python train.py
 python evaluate.py
 ```
 
+**FCIS ResNet101**
+
+| Implementation | mAP@0.5 | mAP@0.7 |
+|:--------------:|:-------:|:-------:|
+| [Original](https://github.com/msracver/FCIS) | Random | 0.646 | 0.499 |
+| Ours | Random | 0.615 | 0.480 |
+
+
 ## Dataset Download
 
 - [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/)
