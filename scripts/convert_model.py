@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import chainer
 import fcis
 import os.path as osp
@@ -13,13 +14,34 @@ filepath = osp.abspath(osp.dirname(__file__))
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset')
+    args = parser.parse_args()
+
+    if args.dataset == 'coco':
+        n_class = 81
+        model = fcis.models.FCISResNet101(n_class)
+        prefix = filepath + '/../model/fcis_coco'
+        epoch = 0
+    elif args.dataset == 'voc':
+        n_class = 21
+        model = fcis.models.FCISResNet101(
+            n_class,
+            ratios=(0.5, 1.0, 2.0),
+            anchor_scales=(8, 16, 32),
+            rpn_min_size=16)
+        prefix = filepath + '/../model/e2e'
+        epoch = 21
+    else:
+        print('dataset must be coco or voc')
     arg_params, aux_params = load_param(
-        filepath + '/../model/fcis_coco', 0, process=True)
+        prefix, epoch, process=True)
+    model = convert(model, arg_params, aux_params)
+    chainer.serializers.save_npz(
+        './fcis_{}.npz'.format(args.dataset), model)
 
-    n_class = 81
 
-    model = fcis.models.FCISResNet101(n_class)
-
+def convert(model, arg_params, aux_params):
     conv_branch = {
         'branch2a': 'conv1',
         'branch2b': 'conv2',
@@ -192,8 +214,7 @@ def main():
             elif data_type == 'mean':
                 assert layer.avg_mean.shape == value.shape, name
                 layer.avg_mean = value
-
-    chainer.serializers.save_npz('./fcis_coco.npz', model)
+    return model
 
 
 if __name__ == '__main__':
