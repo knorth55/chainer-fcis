@@ -280,9 +280,9 @@ class FCISResNet101(chainer.Chain):
 
     def download(self, dataset='coco'):
         if dataset == 'voc':
-            url = 'https://drive.google.com/uc?id=1wIb2eHEIoBvaOR5OfxX7CsoJxGTIH97T'  # NOQA
+            url = 'https://drive.google.com/uc?id=1QDquG8SlbvnlsJpfMhuZn8g0tpe84lVt'  # NOQA
             path = osp.join(self.model_dir, 'fcis_voc.npz')
-            md5 = '85f6d54e0d3c994fad52732e9119eddb'
+            md5 = '264ef0d2b620ad9cd4872afccf922a1b'
         else:
             url = 'https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M'
             path = osp.join(self.model_dir, 'fcis_coco.npz')
