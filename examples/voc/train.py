@@ -86,6 +86,7 @@ def main():
     parser.add_argument('--gpu', default=0)
     parser.add_argument('--out', '-o', default=None)
     parser.add_argument('--config', default=None)
+    parser.add_argument('--resume', default=None)
     args = parser.parse_args()
 
     # gpu
@@ -136,7 +137,10 @@ def main():
         ratios=(0.5, 1.0, 2.0),
         anchor_scales=(8, 16, 32),
         rpn_min_size=16)
-    fcis_model.init_weight()
+    if args.resume is None:
+        fcis_model.init_weight()
+    else:
+        chainer.serializers.load_npz(args.resume, fcis_model)
     model = fcis.models.FCISTrainChain(
         fcis_model,
         n_sample=128,
