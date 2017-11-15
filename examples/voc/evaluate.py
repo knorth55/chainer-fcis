@@ -102,7 +102,7 @@ def main():
 
     iou_thresh = (0.5, 0.7)
     results = eval_instance_segmentation_voc(
-        generator, iou_thresh, use_07_metric=False)
+        generator, iou_thresh, use_07_metric=True)
 
     print('================================')
     print('iou_thresh={}'.format(0.5))
