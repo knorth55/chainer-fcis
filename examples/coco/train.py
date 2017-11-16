@@ -229,7 +229,7 @@ def main():
 
     # interval
     save_interval = 1, 'epoch'
-    log_interval = 20, 'iteration'
+    log_interval = 100, 'iteration'
     # plot_interval = 3000, 'iteration'
     print_interval = 20, 'iteration'
     test_interval = 8, 'epoch'
