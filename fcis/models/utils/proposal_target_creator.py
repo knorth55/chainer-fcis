@@ -103,8 +103,7 @@ class ProposalTargetCreator(object):
 
         # labels
         # The label with value 0 is the background.
-        gt_roi_labels = labels[gt_assignment]
-        gt_roi_labels = gt_roi_labels[keep_indices]
+        gt_roi_labels = labels[gt_assignment[keep_indices]]
         # set labels of bg_rois to be 0
         gt_roi_labels[fg_rois_per_this_image:] = 0
 
