@@ -129,6 +129,7 @@ def main():
         dataset_class = VOCInstanceSegmentationDataset
     train_dataset = dataset_class(split='train')
     test_dataset = dataset_class(split='val')
+    train_dataset.aspect_grouping()
 
     # model
     n_class = len(voc_label_names)
