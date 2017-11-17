@@ -45,7 +45,7 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         for data_id in self.ids:
             img = self._load_data(data_id)[0]
             _, H, W = img.shape
-            if H > W:
+            if W >= H:
                 horz.append(data_id)
             else:
                 vert.append(data_id)
