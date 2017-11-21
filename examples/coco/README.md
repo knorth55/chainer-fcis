@@ -42,8 +42,6 @@ mpiexec -n <gpu_num> python train.py
 
 ## Evaluation
 
-### Evaluation: Inference
-
 ```bash
 # Download datasets manually in ~/data/datasets/coco
 # or run below.
@@ -51,6 +49,10 @@ mpiexec -n <gpu_num> python train.py
 
 python evaluate.py
 ```
+
+### Evaluation: Inference
+
+This is evaluation of model trained by original repo.
 
 **FCIS ResNet101**
 

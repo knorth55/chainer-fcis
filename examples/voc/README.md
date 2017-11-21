@@ -30,8 +30,6 @@ python train.py
 
 ## Evaluation
 
-### Evaluation: Inference
-
 ```bash
 # Download dataset manually in ~/data/datasets/VOC
 # or run below.
@@ -39,6 +37,10 @@ python train.py
 
 python evaluate.py
 ```
+
+### Evaluation: Inference
+
+This is evaluation of model trained by original repo.
 
 **FCIS ResNet101**
 
