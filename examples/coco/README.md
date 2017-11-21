@@ -6,6 +6,8 @@
 
 Trained model can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).
 
+This model is converted from one trained by original repo.
+
 ```bash
 # Pretrained model will be downloaded automatically
 # or run below.
@@ -40,6 +42,8 @@ mpiexec -n <gpu_num> python train.py
 
 ## Evaluation
 
+### Evaluation: Inference
+
 ```bash
 # Download datasets manually in ~/data/datasets/coco
 # or run below.
@@ -56,6 +60,9 @@ python evaluate.py
 | [Original](https://github.com/msracver/FCIS) | Random | 0.288 | 0.487 | 0.068 | 0.308 | 0.495 |
 | Ours | Random | 0.259 | 0.444 | 0.058 | 0.271 | 0.466 |
 
+### Evaluation: Training
+
+***Work in progress***
 
 ## Dataset Download
 

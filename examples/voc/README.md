@@ -6,6 +6,8 @@
 
 Trained model can be dowloaded [here](https://drive.google.com/open?id=1QDquG8SlbvnlsJpfMhuZn8g0tpe84lVt).
 
+This model is converted from one trained by original repo.
+
 ```bash
 # Pretrained model will be downloaded automatically
 # or run below.
@@ -27,6 +29,8 @@ python train.py
 ```
 
 ## Evaluation
+
+### Evaluation: Inference
 
 ```bash
 # Download dataset manually in ~/data/datasets/VOC
@@ -56,6 +60,11 @@ python evaluate.py
 |:--------------:|:---------:|:-------:|:----:|:----:|:------:|:---:|:---:|:---:|:-----:|:---:|:------------:|:---:|:-----:|:---------:|:------:|:------------:|:-----:|:----:|:-----:|:----------:|
 | [Original](https://github.com/msracver/FCIS) | 0.649 | 0.455 | 0.570 | 0.338 | 0.333 | 0.754 | 0.547 | 0.745 | 0.246 | 0.534 | 0.245 | 0.703 | 0.478 | 0.530 | 0.543 | 0.264 | 0.533 | 0.324 | 0.660 | 0.536 |
 | Ours | 0.629 | 0.475 | 0.568 | 0.307 | 0.309 | 0.717 | 0.512 | 0.746 | 0.231 | 0.517 | 0.200 | 0.685 | 0.486 | 0.518 | 0.491 | 0.252 | 0.511 | 0.327 | 0.626 | 0.500 |
+
+
+### Evaluation: Training
+
+***Work in progress***
 
 ## Dataset Download
 
