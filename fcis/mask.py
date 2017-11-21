@@ -80,6 +80,7 @@ def mask_voting(
 
         v_mask_l = np.empty((0, mask_size, mask_size), dtype=np.float32)
         v_bbox_l = np.empty((0, 4), dtype=np.float32)
+        v_cls_prob_l = np.empty((0, ), dtype=np.float32)
 
         for i, bbox in enumerate(bbox_l):
             iou = bbox_iou(rois, bbox[np.newaxis, :])
@@ -94,13 +95,15 @@ def mask_voting(
                 clipped_mask = cv2.resize(
                     clipped_mask.astype(np.float32),
                     (mask_size, mask_size))
-                v_bbox_l = np.concatenate((v_bbox_l, clipped_bbox[None]))
                 v_mask_l = np.concatenate((v_mask_l, clipped_mask[None]))
+                v_bbox_l = np.concatenate((v_bbox_l, clipped_bbox[None]))
+                v_cls_prob_l = np.concatenate(
+                    (v_cls_prob_l, cls_prob_l[i][None]))
 
-        keep_indices = cls_prob_l > score_thresh
+        keep_indices = v_cls_prob_l > score_thresh
         v_mask_l = v_mask_l[keep_indices]
         v_bbox_l = v_bbox_l[keep_indices]
-        v_cls_prob_l = cls_prob_l[keep_indices]
+        v_cls_prob_l = v_cls_prob_l[keep_indices]
 
         v_label_l = np.repeat(label, v_bbox_l.shape[0])
         v_masks = np.concatenate((v_masks, v_mask_l))
