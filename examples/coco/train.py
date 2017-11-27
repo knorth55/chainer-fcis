@@ -180,10 +180,8 @@ def main():
     model.fcis.res5.disable_update(False, True)
 
     # psroi_conv1 lr
-    update_rule = chainer.optimizers.momentum_sgd.MomentumSGDRule(
-        lr=lr * 3.0, momentum=0.9)
-    model.fcis.psroi_conv1.W.update_rule = update_rule
-    model.fcis.psroi_conv1.b.update_rule = update_rule
+    model.fcis.psroi_conv1.W.update_rule.hyperparam.lr = 3.0 * lr
+    model.fcis.psroi_conv1.b.update_rule.hyperparam.lr = 3.0 * lr
 
     # dataset
     if comm.rank == 0:
