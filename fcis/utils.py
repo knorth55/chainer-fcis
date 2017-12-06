@@ -146,7 +146,8 @@ def mask_probs2mask(mask_probs, bboxes, binary_thresh=0.4):
     for mask_prob, bbox in zip(mask_probs, bboxes):
         bbox = np.round(bbox).astype(np.int32)
         y_min, x_min, y_max, x_max = bbox
-        mask = cv2.resize(mask_prob, (x_max - x_min, y_max - y_min))
+        mask = cv2.resize(
+            mask_prob.astype(np.float32), (x_max - x_min, y_max - y_min))
         mask = mask >= binary_thresh
         masks.append(mask)
     return masks

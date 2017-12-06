@@ -14,7 +14,8 @@ def mask_aggregation(
         bbox = np.round(bbox).astype(np.int)
         y_min, x_min, y_max, x_max = bbox
         mask_prob = cv2.resize(
-            mask_prob, (x_max - x_min, y_max - y_min))
+            mask_prob.astype(np.float32),
+            (x_max - x_min, y_max - y_min))
         mask_mask = (mask_prob >= binary_thresh).astype(np.float)
         mask[y_min:y_max, x_min:x_max] += mask_mask * mask_weight
 
