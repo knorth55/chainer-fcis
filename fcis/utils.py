@@ -108,8 +108,7 @@ def label_mask2whole_mask(label_mask):
 def read_images(imgpaths, channel_order='BGR'):
     imgs = []
     for imgpath in imgpaths:
-        img = cv2.imread(
-            imgpath, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
+        img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
         if channel_order == 'RGB':
             img = img[:, :, ::-1]
         imgs.append(img)
