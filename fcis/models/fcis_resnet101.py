@@ -166,9 +166,9 @@ class FCISResNet101(chainer.Chain):
         # Classfication
         # Group Max
         # shape: (n_rois, n_class, roi_size, roi_size)
-        h_cls = F.max(pool_cls_seg, axis=2)
+        h_cls = pool_cls_seg.transpose((0, 1, 3, 4, 2))
+        h_cls = F.max(h_cls, axis=4)
 
-        n_rois, n_class, _, _ = h_cls.shape
         # Global pooling (vote)
         # shape: (n_rois, n_class)
         roi_cls_scores = _global_average_pooling_2d(h_cls)

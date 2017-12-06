@@ -57,15 +57,16 @@ class FCISTrainChain(chainer.Chain):
                 h = self.fcis.res2(h)
             h = self.fcis.res3(h)
             h = self.fcis.res4(h)
+            res4 = h
 
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
-            h, img_size, scale)
+            res4, img_size, scale)
 
-        h = self.fcis.res5(h)
+        res5 = self.fcis.res5(res4)
 
-        h = F.relu(self.fcis.psroi_conv1(h))
-        h_seg = self.fcis.psroi_conv2(h)
-        h_locs = self.fcis.psroi_conv3(h)
+        psroi_conv1 = F.relu(self.fcis.psroi_conv1(res5))
+        h_seg = self.fcis.psroi_conv2(psroi_conv1)
+        h_locs = self.fcis.psroi_conv3(psroi_conv1)
 
         # batch size = 1
         bboxes = bboxes[0]
