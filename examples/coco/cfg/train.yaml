@@ -3,9 +3,9 @@ max_epoch: 16
 target_height: 600
 max_width: 1000
 lr: 5.0e-5
-# warmup_iter num from begin
+# warmup_iter num
 warmup_iter: 4000
 lr_warmup_factor: 10.0
-# cooldown iter num from last
+# cooldown iter num
 cooldown_epoch: 10.66
 lr_cooldown_factor: 0.1
