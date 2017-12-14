@@ -189,7 +189,7 @@ class ResNet101C1(chainer.Chain):
 
     def __call__(self, x):
         h = F.relu(self.bn1(self.conv1(x)))
-        h = F.max_pooling_2d(F.relu(h), 3, stride=2, pad=0)
+        h = F.max_pooling_2d(h, 3, stride=2, pad=0)
         return h
 
     def disable_update(self, conv=True, bn=True):
