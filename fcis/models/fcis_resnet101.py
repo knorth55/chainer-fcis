@@ -103,12 +103,12 @@ class FCISResNet101(chainer.Chain):
 
         # Convolution for PSROI pooling
         h = F.relu(self.psroi_conv1(h))
-        h_seg = self.psroi_conv2(h)
+        h_cls_seg = self.psroi_conv2(h)
         h_locs = self.psroi_conv3(h)
 
         # PSROI pooling and regression
         roi_seg_scores, roi_cls_locs, roi_cls_scores = self._pool_and_predict(
-            indices_and_rois, h_seg, h_locs)
+            indices_and_rois, h_cls_seg, h_locs)
         roi_cls_probs = F.softmax(roi_cls_scores)
         roi_seg_probs = F.softmax(roi_seg_scores)
         roi_seg_probs = roi_seg_probs.array
@@ -132,7 +132,7 @@ class FCISResNet101(chainer.Chain):
                 (roi_indices[:, None], rois2), axis=1)
             indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
             roi_seg_scores2, _, roi_cls_scores2 = self._pool_and_predict(
-                indices_and_rois2, h_seg, h_locs)
+                indices_and_rois2, h_cls_seg, h_locs)
             roi_cls_probs2 = F.softmax(roi_cls_scores2)
             roi_seg_probs2 = F.softmax(roi_seg_scores2)
             roi_seg_probs2 = roi_seg_probs2.array
@@ -149,11 +149,11 @@ class FCISResNet101(chainer.Chain):
         return roi_indices, rois, roi_seg_probs, roi_cls_probs
 
     def _pool_and_predict(
-            self, indices_and_rois, h_seg, h_locs, gt_roi_labels=None):
+            self, indices_and_rois, h_cls_seg, h_locs, gt_roi_labels=None):
         # PSROI Pooling
         # shape: (n_rois, n_class*2, roi_size, roi_size)
         pool_cls_seg = _psroi_pooling_2d_yx(
-            h_seg, indices_and_rois, self.roi_size, self.roi_size,
+            h_cls_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
             output_dim=self.n_class*2)
         # shape: (n_rois, n_class, 2, roi_size, roi_size)

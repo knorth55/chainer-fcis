@@ -65,7 +65,7 @@ class FCISTrainChain(chainer.Chain):
         res5 = self.fcis.res5(res4)
 
         psroi_conv1 = F.relu(self.fcis.psroi_conv1(res5))
-        h_seg = self.fcis.psroi_conv2(psroi_conv1)
+        h_cls_seg = self.fcis.psroi_conv2(psroi_conv1)
         h_locs = self.fcis.psroi_conv3(psroi_conv1)
 
         # batch size = 1
@@ -99,7 +99,7 @@ class FCISTrainChain(chainer.Chain):
 
         roi_seg_scores, roi_cls_locs, roi_cls_scores = \
             self.fcis._pool_and_predict(
-                sample_indices_and_rois, h_seg, h_locs,
+                sample_indices_and_rois, h_cls_seg, h_locs,
                 gt_roi_labels=gt_roi_labels)
         n_rois = roi_cls_locs.shape[0]
         gt_roi_fg_labels = (gt_roi_labels > 0).astype(int)
