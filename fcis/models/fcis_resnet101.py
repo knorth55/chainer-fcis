@@ -1,3 +1,5 @@
+from __future__ import division
+
 import chainer
 import chainer.functions as F
 import chainer.links as L
@@ -218,7 +220,7 @@ class FCISResNet101(chainer.Chain):
             img = self.prepare(
                 orig_img, target_height, max_width)
             img = img.astype(np.float32)
-            scale = img.shape[1] / float(orig_H)
+            scale = img.shape[1] / orig_H
             with chainer.using_config('train', False), \
                     chainer.function.no_backprop_mode():
                 # inference
