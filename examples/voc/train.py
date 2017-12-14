@@ -204,11 +204,13 @@ def main():
             savefun=chainer.serializers.save_npz,
             filename='%s_model_iter_{.updater.iteration}.npz' % model_name),
         trigger=save_interval)
-    trainer.extend(chainer.training.extensions.observe_lr(),
-                   trigger=log_interval)
-    trainer.extend(chainer.training.extensions.LogReport(
-        log_name='log.json',
-        trigger=log_interval))
+    trainer.extend(
+        chainer.training.extensions.observe_lr(),
+        trigger=log_interval)
+    trainer.extend(
+        chainer.training.extensions.LogReport(
+            log_name='log.json',
+            trigger=log_interval))
     trainer.extend(chainer.training.extensions.PrintReport([
         'iteration',
         'epoch',
@@ -227,7 +229,8 @@ def main():
         'validation/main/fcis_cls_acc',
         'validation/main/fcis_fg_acc',
     ]), trigger=print_interval)
-    trainer.extend(chainer.training.extensions.ProgressBar(update_interval=10))
+    trainer.extend(
+        chainer.training.extensions.ProgressBar(update_interval=10))
 
     trainer.extend(
         chainer.training.extensions.Evaluator(
@@ -235,7 +238,8 @@ def main():
             device=gpu),
         trigger=test_interval)
 
-    trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
+    trainer.extend(
+        chainer.training.extensions.dump_graph('main/loss'))
 
     trainer.run()
 
