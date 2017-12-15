@@ -119,8 +119,8 @@ class FCISResNet101(chainer.Chain):
             # get rois2 for more precise prediction
             roi_cls_locs = roi_cls_locs.array
             roi_locs = roi_cls_locs[:, 1, :]
-            mean = self.xp.array(self.loc_normalize_mean)
-            std = self.xp.array(self.loc_normalize_std)
+            mean = self.xp.array(self.loc_normalize_mean, np.float32)
+            std = self.xp.array(self.loc_normalize_std, np.float32)
             roi_locs = roi_locs * std + mean
             rois2 = loc2bbox(rois, roi_locs)
             H, W = img_size
@@ -130,7 +130,6 @@ class FCISResNet101(chainer.Chain):
             # PSROI pooling and regression
             indices_and_rois2 = self.xp.concatenate(
                 (roi_indices[:, None], rois2), axis=1)
-            indices_and_rois2 = indices_and_rois2.astype(self.xp.float32)
             roi_seg_scores2, _, roi_cls_scores2 = self._pool_and_predict(
                 indices_and_rois2, h_cls_seg, h_locs)
             roi_cls_probs2 = F.softmax(roi_cls_scores2)
