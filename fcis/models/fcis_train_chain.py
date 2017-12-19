@@ -1,6 +1,7 @@
 # _smooth_l1_loss and _fast_rcnn_loc_loss
 # are originally from https://github.com/chainer/chainercv
 # and worked by Yusuke Niitani (@yuyu2172)
+from __future__ import division
 
 import chainer
 import chainer.functions as F
@@ -14,7 +15,7 @@ class FCISTrainChain(chainer.Chain):
 
     def __init__(
             self, fcis, rpn_sigma=3.0, roi_sigma=1.0,
-            n_sample=None,
+            n_sample=128,
             loc_normalize_mean=(0., 0., 0., 0.),
             loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
             fg_ratio=0.25, fg_iou_thresh=0.5,
@@ -26,6 +27,7 @@ class FCISTrainChain(chainer.Chain):
             self.fcis = fcis
         self.rpn_sigma = rpn_sigma
         self.roi_sigma = roi_sigma
+        self.n_sample = n_sample
 
         self.loc_normalize_mean = fcis.loc_normalize_mean
         self.loc_normalize_std = fcis.loc_normalize_std
@@ -112,7 +114,8 @@ class FCISTrainChain(chainer.Chain):
             roi_cls_scores, gt_roi_labels)
         fcis_mask_loss = F.softmax_cross_entropy(
             roi_seg_scores, gt_roi_masks)
-        fcis_loss = fcis_loc_loss + fcis_cls_loss + 10.0 * fcis_mask_loss
+        fcis_loss = fcis_loc_loss + fcis_cls_loss
+        fcis_loss = fcis_loss + 10.0 / self.n_sample * fcis_mask_loss
 
         # RPN acc
         rpn_probs = F.softmax(rpn_scores)

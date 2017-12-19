@@ -12,7 +12,7 @@ import numpy as np
 
 class ProposalTargetCreator(object):
     def __init__(
-            self, n_sample,
+            self, n_sample=128,
             loc_normalize_mean=(0., 0., 0., 0.),
             loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
             fg_ratio=0.25, fg_iou_thresh=0.5,
