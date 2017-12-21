@@ -114,8 +114,8 @@ class FCISTrainChain(chainer.Chain):
             roi_cls_scores, gt_roi_labels)
         fcis_mask_loss = F.softmax_cross_entropy(
             roi_seg_scores, gt_roi_masks)
-        fcis_loss = fcis_loc_loss + fcis_cls_loss
-        fcis_loss = fcis_loss + 10.0 / self.n_sample * fcis_mask_loss
+        fcis_loss = fcis_loc_loss + fcis_cls_loss + fcis_mask_loss
+        loss = rpn_loss + fcis_loss
 
         # RPN acc
         rpn_probs = F.softmax(rpn_scores)
@@ -151,7 +151,6 @@ class FCISTrainChain(chainer.Chain):
         fcis_fg_acc = fcis_fg_acc / float(len(gt_roi_labels))
 
         # Total loss
-        loss = rpn_loss + fcis_loss
         chainer.reporter.report({
             'loss': loss,
             'rpn_loc_loss': rpn_loc_loss,
