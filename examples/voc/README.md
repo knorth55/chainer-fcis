@@ -38,7 +38,7 @@ python train.py
 python evaluate.py
 ```
 
-### Evaluation: Training
+### Evaluation: Trained model by Our Repo
 
 This is evaluation of model trained by our repo.
 
@@ -64,9 +64,9 @@ This is evaluation of model trained by our repo.
 | Ours | 0.578 | 0.380 | 0.505 | 0.267 | 0.293 | 0.593 | 0.474 | 0.432 | 0.191 | 0.302 | 0.146 | 0.581 | 0.333 | 0.449 | 0.420 | 0.249 | 0.428 | 0.321 | 0.569 | 0.530 |
 
 
-### Evaluation: Inference
+### Evaluation: Converted model from Original Repo
 
-This is evaluation of model trained by original repo.
+This is evaluation of model trained by original repo and converted to chainer.
 
 **FCIS ResNet101**
 

@@ -50,13 +50,13 @@ mpiexec -n <gpu_num> python train.py
 python evaluate.py
 ```
 
-### Evaluation: Training
+### Evaluation: Trained model by Our Repo
 
 ***Work in progress***
 
-### Evaluation: Inference
+### Evaluation: Converted model from Original Repo
 
-This is evaluation of model trained by original repo.
+This is evaluation of model trained by original repo and converted to chainer.
 
 **FCIS ResNet101**
 
