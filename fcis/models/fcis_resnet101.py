@@ -21,7 +21,7 @@ import os.path as osp
 class FCISResNet101(chainer.Chain):
 
     feat_stride = 16
-    mean_bgr = np.array([103.06, 115.90, 123.15])
+    mean_bgr = np.array([103.06, 115.90, 123.15], dtype=np.float32)
     model_dir = osp.expanduser('~/data/models/chainer/')
 
     def __init__(
