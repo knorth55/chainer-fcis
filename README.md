@@ -32,6 +32,12 @@ Notification
 - Only GPU implementation, No CPU implementation yet.
 - Large GPU memory around 10GB is required (Titan X, GeForce 1080Ti).
 
+TODO
+----
+
+- [ ] Reproduce original repo training accuracy
+- [ ] Refine evaluation code
+
 Installation
 ------------
 
