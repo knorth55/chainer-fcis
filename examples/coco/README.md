@@ -50,6 +50,10 @@ mpiexec -n <gpu_num> python train.py
 python evaluate.py
 ```
 
+### Evaluation: Training
+
+***Work in progress***
+
 ### Evaluation: Inference
 
 This is evaluation of model trained by original repo.
@@ -61,10 +65,6 @@ This is evaluation of model trained by original repo.
 | [Original](https://github.com/msracver/FCIS) | OHEM | 0.292 | 0.495 | 0.071 | 0.313 | 0.500 |
 | [Original](https://github.com/msracver/FCIS) | Random | 0.288 | 0.487 | 0.068 | 0.308 | 0.495 |
 | Ours | Random | 0.259 | 0.444 | 0.058 | 0.271 | 0.466 |
-
-### Evaluation: Training
-
-***Work in progress***
 
 ## Dataset Download
 
