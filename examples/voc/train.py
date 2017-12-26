@@ -186,7 +186,8 @@ def main():
 
     # lr scheduler
     trainer.extend(
-        chainer.training.extensions.ExponentialShift('lr', lr_cooldown_factor),
+        chainer.training.extensions.ExponentialShift(
+            'lr', lr_cooldown_factor, init=lr),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [cooldown_epoch], 'epoch'))
 
