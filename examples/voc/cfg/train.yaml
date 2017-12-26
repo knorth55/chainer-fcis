@@ -1,4 +1,4 @@
-random_seed: 1234
+random_seed: 1111
 max_epoch: 44
 target_height: 600
 max_width: 1000
