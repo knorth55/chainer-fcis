@@ -13,6 +13,7 @@ import yaml
 import chainer
 from chainer.datasets import TransformDataset
 import chainercv
+from chainercv.links.model.ssd import GradientScaling
 import cupy
 import cv2
 
@@ -153,16 +154,16 @@ def main():
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
+    # psroi_conv1 lr
+    model.fcis.psroi_conv1.W.update_rule.add_hook(GradientScaling(3.0))
+    model.fcis.psroi_conv1.b.update_rule.add_hook(GradientScaling(3.0))
+
     # disable update
     model.fcis.res1.disable_update(True, True)
     model.fcis.res2.disable_update(True, True)
     model.fcis.res3.disable_update(False, True)
     model.fcis.res4.disable_update(False, True)
     model.fcis.res5.disable_update(False, True)
-
-    # psroi_conv1 lr
-    model.fcis.psroi_conv1.W.update_rule.hyperparam.lr = 3.0 * lr
-    model.fcis.psroi_conv1.b.update_rule.hyperparam.lr = 3.0 * lr
 
     train_dataset = TransformDataset(
         train_dataset,
