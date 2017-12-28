@@ -2,6 +2,7 @@
 
 import argparse
 import chainer
+import datetime
 import easydict
 import fcis
 import matplotlib.pyplot as plt
@@ -17,6 +18,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0)
     parser.add_argument('-m', '--modelpath', default=None)
+    parser.add_argument('--no-viewer', action='store_true')
     args = parser.parse_args()
 
     # chainer config for demo
@@ -61,7 +63,12 @@ def main():
     imgpaths = [osp.join(imgdir, name) for name in img_names]
     orig_imgs = fcis.utils.read_images(imgpaths, channel_order='BGR')
 
-    for orig_img in orig_imgs:
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    savepath = osp.join(filepath, 'demo_viz', timestamp)
+    if not osp.exists(savepath):
+        os.makedirs(savepath)
+
+    for i, orig_img in enumerate(orig_imgs):
         # prediction
         # H, W, C -> C, H, W
         bboxes, whole_masks, labels, cls_probs = model.predict(
@@ -80,7 +87,9 @@ def main():
         fcis.utils.visualize_mask(
             orig_img[:, :, ::-1], whole_masks, bboxes, labels,
             cls_probs, label_names)
-        plt.show()
+        plt.savefig(osp.join(savepath, '{}.png'.format(i)))
+        if not args.no_viewer:
+            plt.show()
 
 
 if __name__ == '__main__':
