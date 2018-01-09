@@ -28,7 +28,7 @@ before_script:
   - pip install flake8 hacking
 
 script:
-  - flake8 .
+  - flake8 --ignore=E402 .
 
 notifications:
   email: false
