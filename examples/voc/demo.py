@@ -1,13 +1,17 @@
 #!/usr/bin/env python
-
 import argparse
-import chainer
 import datetime
-import easydict
-import fcis
-import matplotlib.pyplot as plt
 import os
 import os.path as osp
+
+import matplotlib
+if os.environ.get('DISPLAY') is None:
+    matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+import chainer
+import easydict
+import fcis
 import yaml
 
 
@@ -18,7 +22,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0)
     parser.add_argument('-m', '--modelpath', default=None)
-    parser.add_argument('--no-viewer', action='store_true')
     args = parser.parse_args()
 
     # chainer config for demo
@@ -88,8 +91,7 @@ def main():
             orig_img[:, :, ::-1], whole_masks, bboxes, labels,
             cls_probs, label_names)
         plt.savefig(osp.join(savepath, '{}.png'.format(i)))
-        if not args.no_viewer:
-            plt.show()
+        plt.show()
 
 
 if __name__ == '__main__':

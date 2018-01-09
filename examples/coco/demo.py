@@ -1,12 +1,17 @@
 #!/usr/bin/env python
-
 import argparse
+import datetime
+import os
+import os.path as osp
+
+import matplotlib
+if os.environ.get('DISPLAY') is None:
+    matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import chainer
 import easydict
 import fcis
-import matplotlib.pyplot as plt
-import os
-import os.path as osp
 import yaml
 
 
@@ -57,7 +62,12 @@ def main():
     imgpaths = [osp.join(imgdir, name) for name in img_names]
     orig_imgs = fcis.utils.read_images(imgpaths, channel_order='BGR')
 
-    for orig_img in orig_imgs:
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    savepath = osp.join(filepath, 'demo_viz', timestamp)
+    if not osp.exists(savepath):
+        os.makedirs(savepath)
+
+    for i, orig_img in enumerate(orig_imgs):
         # prediction
         # H, W, C -> C, H, W
         bboxes, whole_masks, labels, cls_probs = model.predict(
@@ -76,6 +86,7 @@ def main():
         fcis.utils.visualize_mask(
             orig_img[:, :, ::-1], whole_masks, bboxes, labels,
             cls_probs, label_names)
+        plt.savefig(osp.join(savepath, '{}.png'.format(i)))
         plt.show()
 
 
