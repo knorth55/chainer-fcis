@@ -1,13 +1,13 @@
 import cv2
-import fcn
-import matplotlib.pyplot as plt
 import numpy as np
+
+import fcn
 
 
 def visualize_mask(
         img, whole_masks, bboxes, labels, cls_probs,
         label_names, alpha=0.7, bbox_alpha=0.7, ax=None):
-
+    import matplotlib.pyplot as plt
     viz_img = img.copy()
     viz_img = viz_img.astype(np.float)
     if ax is None:

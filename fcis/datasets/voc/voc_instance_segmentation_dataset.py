@@ -1,12 +1,13 @@
-import chainer
+import os.path as osp
 import cv2
+import numpy as np
+import PIL.Image
+
+import chainer
+
 from fcis.datasets.voc.voc_utils import prepare_data
 from fcis.datasets.voc.voc_utils import voc_label_names
 from fcis.utils import visualize_mask
-import matplotlib.pyplot as plt
-import numpy as np
-import os.path as osp
-import PIL.Image
 
 
 class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
@@ -72,6 +73,7 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         return img, seg_img, ins_img
 
     def visualize(self, i):
+        import matplotlib.pyplot as plt
         img, bbox, whole_mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]

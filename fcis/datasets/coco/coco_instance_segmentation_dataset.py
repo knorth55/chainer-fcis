@@ -5,13 +5,11 @@ import os
 import os.path as osp
 
 import chainer
-
 from chainercv import utils
 
 from fcis.datasets.coco.coco_utils import coco_label_names
 from fcis.datasets.coco.coco_utils import get_coco
 from fcis.utils import visualize_mask
-import matplotlib.pyplot as plt
 
 try:
     from pycocotools import mask as coco_mask
@@ -171,6 +169,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         return tuple(example)
 
     def visualize(self, i):
+        import matplotlib.pyplot as plt
         img, bbox, whole_mask, label = self.get_example(i)
         img = img.transpose(1, 2, 0)
         img = img[:, :, ::-1]
