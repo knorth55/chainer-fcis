@@ -1,6 +1,6 @@
-import os.path as osp
 import cv2
 import numpy as np
+import os.path as osp
 import PIL.Image
 
 import chainer

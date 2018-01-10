@@ -77,10 +77,11 @@ class FCISResNet101(chainer.Chain):
             self.psroi_conv1 = L.Convolution2D(
                 2048, 1024, 1, 1, 0, initialW=initialW)
             self.psroi_conv2 = L.Convolution2D(
-                1024, group_size*group_size*self.n_class*2, 1, 1, 0,
-                initialW=initialW)
+                1024, group_size * group_size * self.n_class * 2,
+                1, 1, 0, initialW=initialW)
             self.psroi_conv3 = L.Convolution2D(
-                1024, group_size*group_size*2*4, 1, 1, 0, initialW=initialW)
+                1024, group_size * group_size * 2 * 4,
+                1, 1, 0, initialW=initialW)
 
     def __call__(self, x, scale=1.0, iter2=True):
         img_size = x.shape[2:]
@@ -154,7 +155,7 @@ class FCISResNet101(chainer.Chain):
         pool_cls_seg = _psroi_pooling_2d_yx(
             h_cls_seg, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
-            output_dim=self.n_class*2)
+            output_dim=self.n_class * 2)
         # shape: (n_rois, n_class, 2, roi_size, roi_size)
         pool_cls_seg = pool_cls_seg.reshape(
             (-1, self.n_class, 2, self.roi_size, self.roi_size))
@@ -162,7 +163,7 @@ class FCISResNet101(chainer.Chain):
         pool_locs = _psroi_pooling_2d_yx(
             h_locs, indices_and_rois, self.roi_size, self.roi_size,
             self.spatial_scale, group_size=self.group_size,
-            output_dim=2*4)
+            output_dim=2 * 4)
 
         # Classfication
         # Group Max

@@ -109,7 +109,7 @@ class PSROIPooling2D(function.Function):
             top_data = is_empty? (float) 0. : out_sum / bin_area;
             ''', 'psroi_pooling_2d_fwd'
         )(bottom_data, self.spatial_scale, channels, height, width,
-          self.outh, self.outw,  self.group_size, self.output_dim,
+          self.outh, self.outw, self.group_size, self.output_dim,
           bottom_rois, top_data)
 
         return top_data,
