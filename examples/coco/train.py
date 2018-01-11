@@ -189,28 +189,28 @@ def main():
         train_dataset = COCOInstanceSegmentationDataset(split='trainval')
         train_dataset = remove_zero_bbox(
             train_dataset, target_height, max_width)
-        test_dataset = COCOInstanceSegmentationDataset(split='minival')
-        test_dataset = remove_zero_bbox(
-            test_dataset, target_height, max_width)
+        # test_dataset = COCOInstanceSegmentationDataset(split='minival')
+        # test_dataset = remove_zero_bbox(
+        #     test_dataset, target_height, max_width)
         train_dataset = TransformDataset(
             train_dataset,
             Transform(model.fcis, target_height, max_width))
-        test_dataset = TransformDataset(
-            test_dataset,
-            Transform(model.fcis, target_height, max_width, flip=False))
+        # test_dataset = TransformDataset(
+        #     test_dataset,
+        #     Transform(model.fcis, target_height, max_width, flip=False))
     else:
         train_dataset = None
-        test_dataset = None
+        # test_dataset = None
 
     train_dataset = chainermn.scatter_dataset(
         train_dataset, comm, shuffle=True)
-    test_dataset = chainermn.scatter_dataset(
-        test_dataset, comm, shuffle=False)
+    # test_dataset = chainermn.scatter_dataset(
+    #     test_dataset, comm, shuffle=False)
 
     # iterator
     train_iters = chainer.iterators.SerialIterator(train_dataset, batch_size=1)
-    test_iter = chainer.iterators.SerialIterator(
-        test_dataset, batch_size=1, repeat=False, shuffle=False)
+    # test_iter = chainer.iterators.SerialIterator(
+    #     test_dataset, batch_size=1, repeat=False, shuffle=False)
     updater = chainer.training.StandardUpdater(
         train_iters, optimizer, converter=fcis.dataset.concat_examples,
         device=device)
@@ -233,7 +233,7 @@ def main():
     log_interval = 100, 'iteration'
     # plot_interval = 3000, 'iteration'
     print_interval = 20, 'iteration'
-    test_interval = 8, 'epoch'
+    # test_interval = 8, 'epoch'
 
     # trainer.extend(
     #     chainermn.create_multi_node_evaluator(
