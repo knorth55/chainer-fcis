@@ -90,7 +90,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             imgToAnns[ann['image_id']].append(ann)
             anns[ann['id']] = ann
 
-        img_dirs = {x: img_split for x in ids} 
+        img_dirs = {x: img_split for x in ids}
         return img_props, ids, cat_ids, anns, imgToAnns, img_dirs
 
     @property
