@@ -61,7 +61,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         self.cat_ids = list()
         self.anns = dict()
         self.imgToAnns = defaultdict(list)
-        self.img_dirs = list()
+        self.img_dirs = dict()
         for sp, img_sp in zip(splits, img_splits):
             data = self._load_data(data_dir, sp, img_sp)
             self.img_props.update(data[0])
@@ -69,7 +69,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             self.cat_ids.extend(data[2])
             self.anns.update(data[3])
             self.imgToAnns.update(data[4])
-            self.img_dirs.extend(data[5])
+            self.img_dirs.update(data[5])
 
     def _load_data(self, data_dir, split, img_split):
         anno_fn = os.path.join(
@@ -90,7 +90,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             imgToAnns[ann['image_id']].append(ann)
             anns[ann['id']] = ann
 
-        img_dirs = [img_split] * len(ids)
+        img_dirs = {x: img_split for x in ids} 
         return img_props, ids, cat_ids, anns, imgToAnns, img_dirs
 
     @property
@@ -171,7 +171,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def get_example(self, i):
         img_id = self.ids[i]
         img_root = os.path.join(
-            self.data_dir, '{}2014'.format(self.img_dirs[i]))
+            self.data_dir, '{}2014'.format(self.img_dirs[img_id]))
         img_fn = os.path.join(
             img_root, self.img_props[img_id]['file_name'])
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
