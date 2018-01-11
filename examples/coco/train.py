@@ -13,6 +13,7 @@ import yaml
 import chainer
 from chainer.datasets import TransformDataset
 import chainercv
+from chainercv.links.model.ssd import GradientScaling
 import chainermn
 import cupy
 import cv2
@@ -180,8 +181,8 @@ def main():
     model.fcis.res5.disable_update(False, True)
 
     # psroi_conv1 lr
-    model.fcis.psroi_conv1.W.update_rule.hyperparam.lr = 3.0 * lr
-    model.fcis.psroi_conv1.b.update_rule.hyperparam.lr = 3.0 * lr
+    model.fcis.psroi_conv1.W.update_rule.add_hook(GradientScaling(3.0))
+    model.fcis.psroi_conv1.b.update_rule.add_hook(GradientScaling(3.0))
 
     # dataset
     if comm.rank == 0:
