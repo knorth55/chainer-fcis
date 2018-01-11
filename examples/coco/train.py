@@ -235,14 +235,14 @@ def main():
     print_interval = 20, 'iteration'
     test_interval = 8, 'epoch'
 
-    trainer.extend(
-        chainermn.create_multi_node_evaluator(
-            chainer.training.extensions.Evaluator(
-                test_iter, model,
-                converter=fcis.dataset.concat_examples,
-                device=device),
-            comm),
-        trigger=test_interval)
+    # trainer.extend(
+    #     chainermn.create_multi_node_evaluator(
+    #         chainer.training.extensions.Evaluator(
+    #             test_iter, model,
+    #             converter=fcis.dataset.concat_examples,
+    #             device=device),
+    #         comm),
+    #     trigger=test_interval)
 
     # trainer.extend(
     #     InstanceSegmentationCOCOEvaluator(
