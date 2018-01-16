@@ -224,7 +224,8 @@ def main():
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [warmup_iter], 'iteration'))
     trainer.extend(
-        chainer.training.extensions.ExponentialShift('lr', lr_cooldown_factor),
+        chainer.training.extensions.ExponentialShift(
+            'lr', lr_cooldown_factor * lr_warmup_factor),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
             [cooldown_iter], 'iteration'))
 
