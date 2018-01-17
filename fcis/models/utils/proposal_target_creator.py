@@ -93,7 +93,7 @@ class ProposalTargetCreator(object):
             gt_roi = gt_roi.astype(np.int32)
             gt_mask = whole_mask[gt_assignment[fg_index]]
             gt_roi_mask = fcis.mask.intersect_bbox_mask(
-                roi, gt_roi, gt_mask)
+                roi, gt_roi, gt_mask, self.mask_size)
             gt_roi_mask = cv2.resize(
                 gt_roi_mask.astype(np.float32),
                 (self.mask_size, self.mask_size))
