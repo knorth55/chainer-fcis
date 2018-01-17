@@ -133,7 +133,7 @@ class PSROIPooling2D(function.Function):
             int n = i / pooled_width / pooled_height / output_dim;
 
             // [start, end) interval for spatial sampling
-            int roi_batch_ind = bottom_rois[n * 5 + 0];
+            int roi_batch_ind = bottom_rois[n * 5];
             float roi_start_w = static_cast<float>(
                 round(bottom_rois[n * 5 + 1])) * spatial_scale;
             float roi_start_h = static_cast<float>(
@@ -144,7 +144,7 @@ class PSROIPooling2D(function.Function):
                 round(bottom_rois[n * 5 + 4])) * spatial_scale;
 
             // Force too small ROIs to be 1x1
-            float roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
+            float roi_width = max(roi_end_w - roi_start_w, 0.1); // avoid 0
             float roi_height = max(roi_end_h - roi_start_h, 0.1);
 
             // Compute w and h at bottom
