@@ -109,7 +109,7 @@ class FCISTrainChain(chainer.Chain):
 
         # FCIS losses
         fcis_loc_loss = _fast_rcnn_loc_loss(
-            roi_locs, gt_roi_locs, gt_roi_labels, self.roi_sigma)
+            roi_locs, gt_roi_locs, gt_roi_fg_labels, self.roi_sigma)
         fcis_cls_loss = F.softmax_cross_entropy(
             roi_cls_scores, gt_roi_labels)
         fcis_mask_loss = F.softmax_cross_entropy(
