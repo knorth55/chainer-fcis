@@ -1,4 +1,3 @@
-import collections
 import numpy as np
 import os.path as osp
 
@@ -15,12 +14,11 @@ def prepare_data(seg_img, ins_img):
     bboxes = []
     masks = []
     instances = np.unique(ins_img)
-    for inst in instances[instances != -1]:
-        mask_inst = ins_img == inst
-        count = collections.Counter(seg_img[mask_inst].tolist())
-        instance_class = max(count.items(), key=lambda x: x[1])[0]
+    for inst_id in instances[instances != -1]:
+        mask_inst = ins_img == inst_id
+        instance_class = np.unique(seg_img[mask_inst])[0]
 
-        assert inst not in [-1]
+        assert inst_id not in [-1]
         assert instance_class not in [-1, 0]
 
         where = np.argwhere(mask_inst)

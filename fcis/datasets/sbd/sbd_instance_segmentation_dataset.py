@@ -23,11 +23,10 @@ class SBDInstanceSegmentationDataset(VOCInstanceSegmentationDataset):
         img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
         img = img.transpose((2, 0, 1))
         mat = scipy.io.loadmat(seg_imgpath)
-        seg_img = mat['GTcls'][0]['Segmentation'][0].astype(np.int32)
+        seg_img = mat['GTcls']['Segmentation'][0][0].astype(np.int32)
         seg_img = np.array(seg_img, dtype=np.int32)
-        seg_img[seg_img == 255] = -1
         mat = scipy.io.loadmat(ins_imgpath)
-        ins_img = mat['GTinst'][0]['Segmentation'][0].astype(np.int32)
+        ins_img = mat['GTinst']['Segmentation'][0][0].astype(np.int32)
+        ins_img[ins_img == 0] = -1
         ins_img[ins_img == 255] = -1
-        ins_img[np.isin(seg_img, [-1, 0])] = -1
         return img, seg_img, ins_img
