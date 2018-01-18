@@ -117,38 +117,9 @@ class FCISTrainChain(chainer.Chain):
         fcis_loss = fcis_loc_loss + fcis_cls_loss + fcis_mask_loss
         loss = rpn_loss + fcis_loss
 
-        # RPN acc
-        rpn_probs = F.softmax(rpn_scores)
-        rpn_probs = rpn_probs.array.argmax(axis=1)
-        rpn_probs = rpn_probs.ravel()
-        gt_rpn_labels = gt_rpn_labels.ravel()
-        keep_indices = self.xp.where(gt_rpn_labels.ravel() != -1)
-        rpn_probs = rpn_probs[keep_indices]
-        gt_rpn_labels = gt_rpn_labels[keep_indices]
-        rpn_acc = (rpn_probs == gt_rpn_labels).sum()
-        rpn_acc = rpn_acc / float(len(gt_rpn_labels))
-
-        # FCIS cls acc
-        roi_cls_probs = F.softmax(roi_cls_scores)
-        roi_cls_probs = roi_cls_probs.array.argmax(axis=1)
-        roi_cls_probs = roi_cls_probs.ravel()
-        gt_roi_labels = gt_roi_labels.ravel()
-        keep_indices = self.xp.where(gt_roi_labels.ravel() != -1)
-        roi_cls_probs = roi_cls_probs[keep_indices]
-        gt_roi_labels = gt_roi_labels[keep_indices]
-        fcis_cls_acc = (roi_cls_probs == gt_roi_labels).sum()
-        fcis_cls_acc = fcis_cls_acc / float(len(gt_roi_labels))
-
-        # FCIS fg acc
-        roi_fg_probs = F.softmax(roi_cls_scores)
-        roi_fg_probs = roi_fg_probs.array.argmax(axis=1)
-        roi_fg_probs = roi_fg_probs.ravel()
-        gt_roi_labels = gt_roi_labels.ravel()
-        keep_indices = self.xp.where(gt_roi_labels.ravel() > 0)
-        roi_fg_probs = roi_fg_probs[keep_indices]
-        gt_roi_labels = gt_roi_labels[keep_indices]
-        fcis_fg_acc = (roi_fg_probs == gt_roi_labels).sum()
-        fcis_fg_acc = fcis_fg_acc / float(len(gt_roi_labels))
+        rpn_acc = get_acc(rpn_scores, gt_rpn_labels)
+        fcis_cls_acc = get_acc(roi_cls_scores, gt_roi_labels)
+        fcis_fg_acc = get_fg_acc(roi_cls_scores, gt_roi_labels)
 
         # Total loss
         chainer.reporter.report({
@@ -163,6 +134,34 @@ class FCISTrainChain(chainer.Chain):
             'fcis_fg_acc': fcis_fg_acc,
         }, self)
         return loss
+
+
+def get_acc(scores, gt_labels):
+    xp = chainer.cuda.get_array_module(scores)
+
+    pred_labels = F.softmax(scores).array.argmax(axis=1)
+    pred_labels = pred_labels.ravel()
+    labels = gt_labels.ravel()
+    keep_indices = xp.where(labels.ravel() != -1)
+    pred_labels = pred_labels[keep_indices]
+    labels = labels[keep_indices]
+    acc = (pred_labels == labels).sum()
+    acc = acc / float(len(labels))
+    return acc
+
+
+def get_fg_acc(scores, gt_labels):
+    xp = chainer.cuda.get_array_module(scores)
+
+    pred_labels = F.softmax(scores).array.argmax(axis=1)
+    pred_labels = pred_labels.ravel()
+    labels = gt_labels.ravel()
+    keep_indices = xp.where(labels.ravel() > 0)
+    pred_labels = pred_labels[keep_indices]
+    labels = labels[keep_indices]
+    acc = (pred_labels == labels).sum()
+    acc = acc / float(len(labels))
+    return acc
 
 
 def _smooth_l1_loss(x, t, in_weight, sigma):
