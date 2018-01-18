@@ -60,11 +60,11 @@ class FCISTrainChain(chainer.Chain):
             h = self.fcis.res3(h)
             h = self.fcis.res4(h)
             res4 = h
+            h = self.fcis.res5(h)
+            res5 = h
 
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
             res4, img_size, scale)
-
-        res5 = self.fcis.res5(res4)
 
         psroi_conv1 = F.relu(self.fcis.psroi_conv1(res5))
         h_cls_seg = self.fcis.psroi_conv2(psroi_conv1)
