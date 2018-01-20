@@ -140,7 +140,7 @@ def main():
         anchor_scales=(8, 16, 32),
         rpn_min_size=16)
     if args.resume is None:
-        fcis_model.init_weight()
+        fcis_model.extractor.init_weight()
     else:
         chainer.serializers.load_npz(args.resume, fcis_model)
     model = fcis.models.FCISTrainChain(
@@ -155,15 +155,8 @@ def main():
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
     # psroi_conv1 lr
-    model.fcis.psroi_conv1.W.update_rule.add_hook(GradientScaling(3.0))
-    model.fcis.psroi_conv1.b.update_rule.add_hook(GradientScaling(3.0))
-
-    # disable update
-    model.fcis.res1.disable_update(True, True)
-    model.fcis.res2.disable_update(True, True)
-    model.fcis.res3.disable_update(False, True)
-    model.fcis.res4.disable_update(False, True)
-    model.fcis.res5.disable_update(False, True)
+    model.fcis.head.psroi_conv1.W.update_rule.add_hook(GradientScaling(3.0))
+    model.fcis.head.psroi_conv1.b.update_rule.add_hook(GradientScaling(3.0))
 
     train_dataset = TransformDataset(
         train_dataset,

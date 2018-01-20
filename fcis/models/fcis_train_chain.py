@@ -53,29 +53,21 @@ class FCISTrainChain(chainer.Chain):
         img_size = (H, W)
         assert img_size == whole_mask.shape[2:]
 
-        with chainer.using_config('train', False):
-            with chainer.function.no_backprop_mode():
-                h = self.fcis.res1(x)
-                h = self.fcis.res2(h)
-            h = self.fcis.res3(h)
-            h = self.fcis.res4(h)
-            res4 = h
-            h = self.fcis.res5(h)
-            res5 = h
-
-        rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
-            res4, img_size, scale)
-
-        psroi_conv1 = F.relu(self.fcis.psroi_conv1(res5))
-        h_cls_seg = self.fcis.psroi_conv2(psroi_conv1)
-        h_locs = self.fcis.psroi_conv3(psroi_conv1)
-
         # batch size = 1
         bboxes = bboxes[0]
         whole_mask = whole_mask[0]
         labels = labels[0]
-        rpn_scores = rpn_scores[0]
-        rpn_locs = rpn_locs[0]
+
+        with chainer.using_config('train', False):
+            with chainer.function.no_backprop_mode():
+                h = self.fcis.extractor.res1(x)
+                h = self.fcis.extractor.res2(h)
+            h = self.fcis.extractor.res3(h)
+            res4 = self.fcis.extractor.res4(h)
+            res5 = self.fcis.extractor.res5(res4)
+
+        rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
+            res4, img_size, scale)
 
         # target creator
         gt_rpn_locs, gt_rpn_labels = self.anchor_target_creator(
@@ -84,6 +76,8 @@ class FCISTrainChain(chainer.Chain):
         gt_rpn_labels = chainer.cuda.to_gpu(gt_rpn_labels)
 
         # RPN losses
+        rpn_scores = rpn_scores[0]
+        rpn_locs = rpn_locs[0]
         rpn_loc_loss = _fast_rcnn_loc_loss(
             rpn_locs, gt_rpn_locs, gt_rpn_labels, self.rpn_sigma)
         rpn_cls_loss = F.softmax_cross_entropy(
@@ -93,16 +87,13 @@ class FCISTrainChain(chainer.Chain):
         # Sample RoIs and forward
         sample_rois, gt_roi_locs, gt_roi_masks, gt_roi_labels = \
             self.proposal_target_creator(rois, bboxes, whole_mask, labels)
-
         sample_roi_indices = self.xp.zeros(
             (len(sample_rois),), dtype=np.float32)
-        sample_indices_and_rois = self.xp.concatenate(
-            (sample_roi_indices[:, None], sample_rois), axis=1)
 
-        roi_seg_scores, roi_cls_locs, roi_cls_scores = \
-            self.fcis._pool_and_predict(
-                sample_indices_and_rois, h_cls_seg, h_locs,
-                gt_roi_labels=gt_roi_labels)
+        _, _, roi_seg_scores, roi_cls_locs, roi_cls_scores = self.fcis.head(
+            res5, sample_rois, sample_roi_indices,
+            img_size, iter2=False, gt_roi_labels=gt_roi_labels)
+
         n_rois = roi_cls_locs.shape[0]
         gt_roi_fg_labels = (gt_roi_labels > 0).astype(int)
         roi_locs = roi_cls_locs[self.xp.arange(n_rois), gt_roi_fg_labels, :]
