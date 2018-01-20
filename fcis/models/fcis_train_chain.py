@@ -58,16 +58,9 @@ class FCISTrainChain(chainer.Chain):
         whole_mask = whole_mask[0]
         labels = labels[0]
 
-        with chainer.using_config('train', False):
-            with chainer.function.no_backprop_mode():
-                h = self.fcis.extractor.res1(x)
-                h = self.fcis.extractor.res2(h)
-            h = self.fcis.extractor.res3(h)
-            res4 = self.fcis.extractor.res4(h)
-            res5 = self.fcis.extractor.res5(res4)
-
+        rpn_features, roi_features = self.fcis.extractor(x)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.fcis.rpn(
-            res4, img_size, scale)
+            rpn_features, img_size, scale)
 
         # target creator
         gt_rpn_locs, gt_rpn_labels = self.anchor_target_creator(
@@ -91,7 +84,7 @@ class FCISTrainChain(chainer.Chain):
             (len(sample_rois),), dtype=np.float32)
 
         _, _, roi_seg_scores, roi_cls_locs, roi_cls_scores = self.fcis.head(
-            res5, sample_rois, sample_roi_indices,
+            roi_features, sample_rois, sample_roi_indices,
             img_size, iter2=False, gt_roi_labels=gt_roi_labels)
 
         n_rois = roi_cls_locs.shape[0]

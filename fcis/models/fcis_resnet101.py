@@ -32,11 +32,13 @@ class ResNet101Extractor(chainer.Chain):
             self.res5 = ResNet101C5()
 
     def __call__(self, x):
-        h = self.res1(x)
-        h = self.res2(h)
-        h = self.res3(h)
-        res4 = self.res4(h)
-        res5 = self.res5(res4)
+        with chainer.using_config('train', False):
+            with chainer.function.no_backprop_mode():
+                h = self.res1(x)
+                h = self.res2(h)
+            h = self.res3(h)
+            res4 = self.res4(h)
+            res5 = self.res5(res4)
         return res4, res5
 
     def init_weight(self, pretrained_model=None):
