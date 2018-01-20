@@ -14,13 +14,15 @@ import numpy as np
 class FCISTrainChain(chainer.Chain):
 
     def __init__(
-            self, fcis, rpn_sigma=3.0, roi_sigma=1.0,
+            self, fcis,
+            rpn_sigma=3.0, roi_sigma=1.0,
             n_sample=128,
             loc_normalize_mean=(0., 0., 0., 0.),
             loc_normalize_std=(0.2, 0.2, 0.5, 0.5),
             fg_ratio=0.25, fg_iou_thresh=0.5,
             bg_iou_thresh_hi=0.5, bg_iou_thresh_lo=0.0,
-            mask_size=21, binary_thresh=0.4):
+            mask_size=21, binary_thresh=0.4
+    ):
 
         super(FCISTrainChain, self).__init__()
         with self.init_scope():
