@@ -268,13 +268,13 @@ class FCISResNet101(FCIS):
 
     def download(self, dataset='coco'):
         if dataset == 'voc':
-            url = 'https://drive.google.com/uc?id=1QDquG8SlbvnlsJpfMhuZn8g0tpe84lVt'  # NOQA
+            url = 'https://drive.google.com/uc?id=1qFEV3txP_TSd9N0ZVmR9gaS5NoTi9MIr'  # NOQA
             path = osp.join(self.model_dir, 'fcis_voc.npz')
-            md5 = '264ef0d2b620ad9cd4872afccf922a1b'
+            md5 = '95a4029fe1e0ae6100cca8a3971c687c'
         else:
-            url = 'https://drive.google.com/uc?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M'
+            url = 'https://drive.google.com/uc?id=1j98jQp2ATBdiQ51p0YsWGkC5mOmduzPW'  # NOQA
             path = osp.join(self.model_dir, 'fcis_coco.npz')
-            md5 = '689f9f01e7ee37f591b218e49c6686fb'
+            md5 = 'f71a7213b32c2a7ef4522561bc917577'
         return fcn.data.cached_download(url=url, path=path, md5=md5)
 
 
