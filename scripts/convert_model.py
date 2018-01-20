@@ -62,8 +62,9 @@ def convert(model, arg_params, aux_params):
         # ResNetC1
         if name.startswith('conv1'):
             value = value[:, ::-1, :, :]
-            assert model.res1.conv1.W.array.shape == value.shape, name
-            model.res1.conv1.W.array = value
+            layer = model.extractor.res1.conv1
+            assert layer.W.array.shape == value.shape, name
+            layer.W.array = value
         # ResNetC2-5
         elif name.startswith('res'):
             block_name, branch_name, _ = name.split('_')
@@ -77,7 +78,7 @@ def convert(model, arg_params, aux_params):
             elif block_name[4] == 'c':
                 bottle_num = 'b2'
             bottle_name = '{0}_{1}'.format(res_name, bottle_num)
-            res = getattr(model, res_name)
+            res = getattr(model.extractor, res_name)
             bottle = getattr(res, bottle_name)
             layer = getattr(bottle, conv_branch[branch_name])
             assert layer.W.array.shape == value.shape, name
@@ -117,7 +118,7 @@ def convert(model, arg_params, aux_params):
         # psroi_conv1
         elif name.startswith('conv_new'):
             data_type = name.split('_')[3]
-            layer = model.psroi_conv1
+            layer = model.head.psroi_conv1
             if data_type == 'weight':
                 assert layer.W.array.shape == value.shape, name
                 layer.W.array = value
@@ -127,7 +128,7 @@ def convert(model, arg_params, aux_params):
         # psroi_conv2
         elif name.startswith('fcis_cls_seg'):
             data_type = name.split('_')[3]
-            layer = model.psroi_conv2
+            layer = model.head.psroi_conv2
             if data_type == 'weight':
                 assert layer.W.array.shape == value.shape, name
                 layer.W.array = value
@@ -137,7 +138,7 @@ def convert(model, arg_params, aux_params):
         # psroi_conv3
         elif name.startswith('fcis_bbox'):
             data_type = name.split('_')[2]
-            layer = model.psroi_conv3
+            layer = model.head.psroi_conv3
             if data_type == 'weight':
                 value = value.reshape((2, 4, 7 * 7, 1024, 1, 1))
                 value = value[:, [1, 0, 3, 2]]
@@ -153,7 +154,7 @@ def convert(model, arg_params, aux_params):
         else:
             layer_name, branch_name, data_type = name.split('_')
             if layer_name == 'bn':
-                layer = model.res1.bn1
+                layer = model.extractor.res1.bn1
                 if data_type == 'beta':
                     assert layer.beta.array.shape == value.shape
                     layer.beta.array = value
@@ -172,7 +173,7 @@ def convert(model, arg_params, aux_params):
                 elif block_name[0] == 'c':
                     bottle_num = 'b2'
                 bottle_name = '{0}_{1}'.format(res_name, bottle_num)
-                res = getattr(model, res_name)
+                res = getattr(model.extractor, res_name)
                 bottle = getattr(res, bottle_name)
                 layer = getattr(bottle, bn_branch[branch_name])
                 if data_type == 'beta':
@@ -186,7 +187,7 @@ def convert(model, arg_params, aux_params):
         value = value.asnumpy()
         layer_name, branch_name, _, data_type = name.split('_')
         if layer_name == 'bn':
-            layer = model.res1.bn1
+            layer = model.extractor.res1.bn1
             if data_type == 'var':
                 assert layer.avg_var.shape == value.shape, name
                 layer.avg_var = value
@@ -205,7 +206,7 @@ def convert(model, arg_params, aux_params):
             elif block_name[0] == 'c':
                 bottle_num = 'b2'
             bottle_name = '{0}_{1}'.format(res_name, bottle_num)
-            res = getattr(model, res_name)
+            res = getattr(model.extractor, res_name)
             bottle = getattr(res, bottle_name)
             layer = getattr(bottle, bn_branch[branch_name])
             if data_type == 'var':
