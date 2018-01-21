@@ -30,13 +30,15 @@ Additional Requirement
 Notification
 ------------
 - Only GPU implementation, No CPU implementation yet.
-- Large GPU memory around 10GB is required (Titan X, GeForce 1080Ti).
 
 TODO
 ----
-
-- [ ] Reproduce original repo training accuracy
-- [ ] Refine evaluation code
+- VOC
+  - [x] Reproduce original repo training accuracy
+  - [ ] Refine evaluation code
+- COCO
+  - [ ] Reproduce original repo training accuracy
+  - [ ] Refine evaluation code
 
 Installation
 ------------
@@ -44,13 +46,11 @@ Installation
 ```bash
 # Requirement installation
 # I recommend to use anacoda.
-
 conda create -n fcis python=2.7
 conda install -c menpo opencv
 pip install cupy
 
 # Installation
-
 git clone https://github.com/knorth55/chainer-fcis.git
 cd chainer-fcis
 pip install -e .
@@ -58,14 +58,8 @@ pip install -e .
 
 Inference
 ---------
-
-Pretrained models can be dowloaded [here](https://drive.google.com/open?id=0B5DV6gwLHtyJZTR0NFllNGlwS3M).
-
-Inference can be done as below;
-
 ```bash
 cd examples/coco/
-
 python demo.py
 ```
 
@@ -79,7 +73,6 @@ Training
 
 ```bash
 cd examples/voc/
-
 python train.py
 ```
 
