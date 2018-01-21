@@ -142,7 +142,8 @@ class FCISResNet101Head(chainer.Chain):
 
         # PSROI pooling and regression
         roi_seg_scores, roi_cls_locs, roi_cls_scores = self._pool(
-            indices_and_rois, h_cls_seg, h_locs)
+            indices_and_rois, h_cls_seg, h_locs,
+            gt_roi_labels=gt_roi_labels)
         if iter2:
             # 2nd Iteration
             # get rois2 for more precise prediction
@@ -160,7 +161,8 @@ class FCISResNet101Head(chainer.Chain):
             indices_and_rois2 = self.xp.concatenate(
                 (roi_indices[:, None], rois2), axis=1)
             roi_seg_scores2, roi_cls_locs2, roi_cls_scores2 = self._pool(
-                indices_and_rois2, h_cls_seg, h_locs)
+                indices_and_rois2, h_cls_seg, h_locs,
+                gt_roi_labels=gt_roi_labels)
 
             # concat 1st and 2nd iteration results
             rois = self.xp.concatenate((rois, rois2))
