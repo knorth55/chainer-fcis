@@ -103,9 +103,9 @@ class FCISTrainChain(chainer.Chain):
         fcis_loss = fcis_loc_loss + fcis_cls_loss + fcis_mask_loss
         loss = rpn_loss + fcis_loss
 
-        rpn_acc = get_acc(rpn_scores, gt_rpn_labels)
-        fcis_cls_acc = get_acc(roi_cls_scores, gt_roi_labels)
-        fcis_fg_acc = get_fg_acc(roi_cls_scores, gt_roi_labels)
+        rpn_acc = calc_acc(rpn_scores, gt_rpn_labels)
+        fcis_cls_acc = calc_acc(roi_cls_scores, gt_roi_labels)
+        fcis_fg_acc = calc_fg_acc(roi_cls_scores, gt_roi_labels)
 
         # Total loss
         chainer.reporter.report({
@@ -122,7 +122,7 @@ class FCISTrainChain(chainer.Chain):
         return loss
 
 
-def get_acc(scores, gt_labels):
+def calc_acc(scores, gt_labels):
     xp = chainer.cuda.get_array_module(scores)
 
     pred_labels = F.softmax(scores).array.argmax(axis=1)
@@ -136,7 +136,7 @@ def get_acc(scores, gt_labels):
     return acc
 
 
-def get_fg_acc(scores, gt_labels):
+def calc_fg_acc(scores, gt_labels):
     xp = chainer.cuda.get_array_module(scores)
 
     pred_labels = F.softmax(scores).array.argmax(axis=1)
