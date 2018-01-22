@@ -173,6 +173,13 @@ def main():
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0005))
 
+    # disable update
+    model.fcis.extractor.res1.disable_update(True, True)
+    model.fcis.extractor.res2.disable_update(True, True)
+    model.fcis.extractor.res3.disable_update(False, True)
+    model.fcis.extractor.res4.disable_update(False, True)
+    model.fcis.extractor.res5.disable_update(False, True)
+
     # psroi_conv1 lr
     model.fcis.head.psroi_conv1.W.update_rule.add_hook(GradientScaling(3.0))
     model.fcis.head.psroi_conv1.b.update_rule.add_hook(GradientScaling(3.0))
