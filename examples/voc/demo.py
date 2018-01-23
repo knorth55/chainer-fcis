@@ -56,7 +56,7 @@ def main():
         rpn_min_size=16)
     modelpath = args.modelpath
     if modelpath is None:
-        modelpath = model.download('voc_trained')
+        modelpath = model.download('voc')
     chainer.serializers.load_npz(modelpath, model)
     model.to_gpu(gpu)
 

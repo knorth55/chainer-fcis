@@ -4,7 +4,8 @@ import fcis
 
 
 def main():
-    fcis.models.FCISResNet101.download('voc_trained')
+    fcis.models.FCISResNet101.download('voc')
+    fcis.models.FCISResNet101.download('voc_converted')
 
 
 if __name__ == '__main__':
