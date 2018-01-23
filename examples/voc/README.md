@@ -9,10 +9,6 @@ Trained model can be dowloaded [here](https://drive.google.com/open?id=1QDquG8Sl
 This model is converted from one trained by original repo.
 
 ```bash
-# Pretrained model will be downloaded automatically
-# or run below.
-# python download_models.py
-
 python demo.py
 ```
 
@@ -36,25 +32,23 @@ python train.py
 python evaluate.py
 ```
 
-### Evaluation
+### FCIS ResNet101
 
 This is evaluation of model trained by our repo.
-
-**FCIS ResNet101**
 
 | Implementation | Sampling Strategy | mAP@0.5 | mAP@0.7 |
 |:--------------:|:-----------------:|:-------:|:-------:|
 | [Original](https://github.com/msracver/FCIS) | Random | 0.646 | 0.499 |
 | Ours | Random | 0.630 | 0.488 |
 
-***mAP@0.5***
+**mAP@0.5**
 
 | Implementation | aeroplane | bicycle | bird | boat | bottle | bus | car | cat | chair | cow | dining table | dog | horse | motorbike | person | potted plant | sheep | sofa | train | tv/monitor |
 |:--------------:|:---------:|:-------:|:----:|:----:|:------:|:---:|:---:|:---:|:-----:|:---:|:------------:|:---:|:-----:|:---------:|:------:|:------------:|:-----:|:----:|:-----:|:----------:|
 | [Original](https://github.com/msracver/FCIS) | 0.783 | 0.684 | 0.698 | 0.486 | 0.444 | 0.790 | 0.677 | 0.840 | 0.420 | 0.657 | 0.384 | 0.812 | 0.720 | 0.738 | 0.754 | 0.415 | 0.704 | 0.491 | 0.775 | 0.639 |
 | Ours | 0.771 | 0.698 | 0.686 | 0.459 | 0.416 | 0.784 | 0.667 | 0.836 | 0.398 | 0.631 | 0.331 | 0.809 | 0.708 | 0.719 | 0.704 | 0.407 | 0.651 | 0.491 | 0.781 | 0.642 |
 
-***mAP@0.7***
+**mAP@0.7**
 
 | Implementation | aeroplane | bicycle | bird | boat | bottle | bus | car | cat | chair | cow | dining table | dog | horse | motorbike | person | potted plant | sheep | sofa | train | tv/monitor |
 |:--------------:|:---------:|:-------:|:----:|:----:|:------:|:---:|:---:|:---:|:-----:|:---:|:------------:|:---:|:-----:|:---------:|:------:|:------------:|:-----:|:----:|:-----:|:----------:|
