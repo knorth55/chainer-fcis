@@ -305,6 +305,7 @@ def main():
         trainer.extend(chainer.training.extensions.dump_graph('main/loss'))
 
     trainer.run()
+    print('log is saved in {}'.format(out))
 
 
 if __name__ == '__main__':
