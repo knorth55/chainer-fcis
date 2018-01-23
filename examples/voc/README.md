@@ -4,9 +4,7 @@
 
 ## Inference
 
-Trained model can be dowloaded [here](https://drive.google.com/open?id=1QDquG8SlbvnlsJpfMhuZn8g0tpe84lVt).
-
-This model is converted from one trained by original repo.
+Trained model can be dowloaded [here](https://drive.google.com/open?id=1PscvchtzYsT_xsNX8EsmY1j0Kju6j0r0).
 
 ```bash
 python demo.py
