@@ -52,7 +52,7 @@ def main():
     model.to_gpu(gpu)
 
     dataset = fcis.datasets.coco.COCOInstanceSegmentationDataset(
-        split='minival', use_crowded=True,
+        split='minival2014', use_crowded=True,
         return_crowded=True, return_area=True)
 
     sizes = list()

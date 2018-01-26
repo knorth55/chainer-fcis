@@ -55,7 +55,7 @@ def main():
 
     print('preparing')
     print('train_dataset load')
-    train_dataset = COCOInstanceSegmentationDataset(split='train')
+    train_dataset = COCOInstanceSegmentationDataset(split='train2014')
     print('train_dataset remove zero bbox')
     train_dataset = remove_zero_bbox(train_dataset, target_height, max_width)
     print('model load')

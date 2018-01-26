@@ -186,10 +186,10 @@ def main():
 
     # dataset
     if comm.rank == 0:
-        train_dataset = COCOInstanceSegmentationDataset(split='trainval')
+        train_dataset = COCOInstanceSegmentationDataset(split='trainval2014')
         train_dataset = remove_zero_bbox(
             train_dataset, target_height, max_width)
-        # test_dataset = COCOInstanceSegmentationDataset(split='minival')
+        # test_dataset = COCOInstanceSegmentationDataset(split='minival2014')
         # test_dataset = remove_zero_bbox(
         #     test_dataset, target_height, max_width)
         train_dataset = TransformDataset(

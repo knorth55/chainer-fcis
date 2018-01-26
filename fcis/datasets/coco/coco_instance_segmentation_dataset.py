@@ -33,28 +33,33 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         self.use_crowded = use_crowded
         self.return_crowded = return_crowded
         self.return_area = return_area
-        if split in ['val', 'minival', 'valminusminival']:
-            img_splits = ['val']
+        if split in ['val2014', 'minival2014', 'valminusminival2014']:
+            img_splits = ['val2014']
             splits = [split]
-        elif split == 'trainval':
-            img_splits = ['train', 'val']
-            splits = ['train', 'valminusminival']
+        elif split == 'trainval2014':
+            img_splits = ['train2014', 'val2014']
+            splits = ['train2014', 'valminusminival2014']
+        elif 'test2014' in split:
+            img_splits = ['test2014']
+            splits = [split]
+        elif 'test2015' in split:
+            img_splits = ['test2015']
+            splits = [split]
         else:
-            img_splits = ['train']
+            img_splits = ['train2014']
             splits = [split]
 
         if data_dir is None:
             data_dir = osp.expanduser('~/data/datasets/coco')
         elif data_dir == 'auto':
-            for img_split in img_splits:
-                data_dir = get_coco(split, img_split)
+            data_dir = None
+
+        for img_split in img_splits:
+            data_dir = get_coco(split, img_split, data_dir)
 
         if not osp.exists(data_dir):
-            raise ValueError(
-                'Please download coco2014 dataset first')
+            raise ValueError('Please download coco dataset first')
         self.data_dir = data_dir
-        # self.img_root = os.path.join(
-        #     data_dir, '{}2014'.format(img_split))
 
         self.img_props = dict()
         self.ids = list()
@@ -72,8 +77,12 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
             self.img_dirs.update(data[5])
 
     def _load_data(self, data_dir, split, img_split):
+        if 'test' in split:
+            anno_prefix = 'image_info'
+        else:
+            anno_prefix = 'instances'
         anno_fn = os.path.join(
-            data_dir, 'annotations', 'instances_{}2014.json'.format(split))
+            data_dir, 'annotations', '{0}_{1}.json'.format(anno_prefix, split))
         anno = json.load(open(anno_fn, 'r'))
 
         img_props = dict()
@@ -86,9 +95,10 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
         anns = dict()
         imgToAnns = defaultdict(list)
-        for ann in anno['annotations']:
-            imgToAnns[ann['image_id']].append(ann)
-            anns[ann['id']] = ann
+        if 'annotations' in anno:
+            for ann in anno['annotations']:
+                imgToAnns[ann['image_id']].append(ann)
+                anns[ann['id']] = ann
 
         img_dirs = {x: img_split for x in ids}
         return img_props, ids, cat_ids, anns, imgToAnns, img_dirs
@@ -108,6 +118,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         annotation = self.imgToAnns[img_id]
         H = self.img_props[img_id]['height']
         W = self.img_props[img_id]['width']
+
         bbox = np.array([ann['bbox'] for ann in annotation],
                         dtype=np.float32)
         if len(bbox) == 0:
@@ -171,7 +182,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
     def get_example(self, i):
         img_id = self.ids[i]
         img_root = os.path.join(
-            self.data_dir, '{}2014'.format(self.img_dirs[img_id]))
+            self.data_dir, 'images', self.img_dirs[img_id])
         img_fn = os.path.join(
             img_root, self.img_props[img_id]['file_name'])
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
