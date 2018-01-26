@@ -20,7 +20,7 @@ except ImportError:
 
 class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
 
-    def __init__(self, data_dir=None, split='train',
+    def __init__(self, data_dir=None, split='train2014',
                  use_crowded=False, return_crowded=False,
                  return_area=False):
         if not _available:
@@ -54,7 +54,7 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         elif data_dir == 'auto':
             data_dir = None
 
-        for img_split in img_splits:
+        for split, img_split in zip(splits, img_splits):
             data_dir = get_coco(split, img_split, data_dir)
 
         if not osp.exists(data_dir):
