@@ -52,7 +52,14 @@ python evaluate.py
 
 ### Evaluation: Trained model by Our Repo
 
-***Work in progress***
+This is evaluation of model trained by this repo.
+
+
+| Implementation | Sampling Strategy | mAP/iou@[0.5:0.95] | mAP/iou@0.5 | mAP/iou@[0.5:0.95] \(small) | mAP/iou@[0.5:0.95] \(medium) | mAP/iou@[0.5:0.95] \(large) |
+|:--------------:|:-----------------:|:------------------:|:-----------:|:---------------------------:|:----------------------------:|:---------------------------:|
+| [Original](https://github.com/msracver/FCIS) | OHEM | 0.292 | 0.495 | 0.071 | 0.313 | 0.500 |
+| [Original](https://github.com/msracver/FCIS) | Random | 0.288 | 0.487 | 0.068 | 0.308 | 0.495 |
+| Ours | Random | 0.227 | 0.413 | 0.046 | 0.230 | 0.418 |
 
 ### Evaluation: Converted model from Original Repo
 
