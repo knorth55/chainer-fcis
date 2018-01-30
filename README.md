@@ -1,5 +1,6 @@
 chainer-fcis - FCIS
 ===================
+[![PyPI Version](https://img.shields.io/pypi/v/fcis.svg)](https://pypi.python.org/pypi/fcis)
 ![Build Status](https://travis-ci.org/knorth55/chainer-fcis.svg?branch=master)
 
 ![Example](static/coco_example.png)
@@ -43,17 +44,16 @@ TODO
 Installation
 ------------
 
+We recommend to use [Anacoda](https://anaconda.org/).
+
 ```bash
 # Requirement installation
-# I recommend to use anacoda.
 conda create -n fcis python=2.7
 conda install -c menpo opencv
 pip install cupy
 
 # Installation
-git clone https://github.com/knorth55/chainer-fcis.git
-cd chainer-fcis
-pip install -e .
+pip install fcis
 ```
 
 Inference
