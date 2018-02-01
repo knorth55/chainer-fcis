@@ -5,13 +5,10 @@ import os.path as osp
 import scipy
 
 
-this_dir = osp.dirname(osp.realpath(__file__))
-
-
 class SBDInstanceSegmentationDataset(VOCInstanceSegmentationDataset):
 
     data_dir = osp.expanduser('~/data/datasets/VOC/benchmark_RELEASE/dataset')
-    imgsets_dir = osp.join(this_dir, 'data/')
+    imgsets_dir = osp.expanduser('~/data/datasets/VOC/fcis_label')
 
     def _load_data(self, data_id):
         imgpath = osp.join(
