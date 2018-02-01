@@ -9,7 +9,6 @@ setup(
     name='fcis',
     version=version,
     packages=find_packages(),
-    scripts=['scripts/convert_model.py'],
     install_requires=open('requirements.txt').readlines(),
     description='Chainer Implementation of FCIS',
     long_description=open('README.md').read(),
