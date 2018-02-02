@@ -2,7 +2,6 @@ from __future__ import division
 
 import chainer
 import chainer.functions as F
-import cupy
 import numpy as np
 
 import fcis
@@ -72,15 +71,15 @@ class FCIS(chainer.Chain):
             mask_prob = seg_prob[:, 1, :, :]
 
             # shape: (n_rois, 4)
-            bbox[:, 0::2] = cupy.clip(bbox[:, 0::2], 0, orig_H)
-            bbox[:, 1::2] = cupy.clip(bbox[:, 1::2], 0, orig_W)
+            bbox[:, 0::2] = self.xp.clip(bbox[:, 0::2], 0, orig_H)
+            bbox[:, 1::2] = self.xp.clip(bbox[:, 1::2], 0, orig_W)
 
-            # voting
-            # cpu voting is only implemented
             bbox = chainer.cuda.to_cpu(bbox)
             cls_prob = chainer.cuda.to_cpu(cls_prob)
             mask_prob = chainer.cuda.to_cpu(mask_prob)
 
+            # voting
+            # cpu voting is only implemented
             if mask_voting:
                 bbox, mask_prob, label, cls_prob = fcis.mask.mask_voting(
                     bbox, mask_prob, cls_prob, self.n_class,

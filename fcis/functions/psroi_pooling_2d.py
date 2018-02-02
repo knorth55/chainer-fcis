@@ -3,16 +3,26 @@
 
 # Modified by Shingo Kitagawa (@knorth55)
 
-import numpy
+import numpy as np
 
 from chainer import cuda
 from chainer import function
 from chainer.utils import type_check
 
+if cuda.available:
+    import cupy as cp
+    _available = True
+else:
+    _available = False
+
 
 class PSROIPooling2D(function.Function):
 
     def __init__(self, outh, outw, spatial_scale, group_size, output_dim):
+        if not _available:
+            raise ValueError(
+                'CUDA is not available\n'
+                'Please install CUDA and cupy correctly')
         self.outh, self.outw = outh, outw
         self.spatial_scale = spatial_scale
         self.group_size = group_size
@@ -23,9 +33,9 @@ class PSROIPooling2D(function.Function):
 
         x_type, roi_type = in_types
         type_check.expect(
-            x_type.dtype == numpy.float32,
+            x_type.dtype == np.float32,
             x_type.ndim == 4,
-            roi_type.dtype == numpy.float32,
+            roi_type.dtype == np.float32,
             roi_type.ndim == 2,
             roi_type.shape[1] == 5,
         )
@@ -37,9 +47,9 @@ class PSROIPooling2D(function.Function):
         bottom_data, bottom_rois = inputs
         channels, height, width = bottom_data.shape[1:]
         n_rois = bottom_rois.shape[0]
-        top_data = cuda.cupy.empty((n_rois, self.output_dim, self.outh,
-                                    self.outw), dtype=numpy.float32)
-        cuda.cupy.ElementwiseKernel(
+        top_data = cp.empty(
+            (n_rois, self.output_dim, self.outh, self.outw), dtype=np.float32)
+        cp.ElementwiseKernel(
             '''
             raw float32 bottom_data, float32 spatial_scale, int32 channels,
             int32 height, int32 width, int32 pooled_height, int32 pooled_width,
@@ -117,7 +127,7 @@ class PSROIPooling2D(function.Function):
     def backward_gpu(self, inputs, gy):
         bottom_rois = inputs[1]
         channels, height, width = self._bottom_data_shape[1:]
-        bottom_diff = cuda.cupy.zeros(self._bottom_data_shape, numpy.float32)
+        bottom_diff = cuda.cupy.zeros(self._bottom_data_shape, np.float32)
         cuda.cupy.ElementwiseKernel(
             '''
             raw float32 bottom_diff, int32 num_rois,

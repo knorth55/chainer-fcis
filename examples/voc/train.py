@@ -14,7 +14,7 @@ import chainer
 from chainer.datasets import TransformDataset
 import chainercv
 from chainercv.links.model.ssd import GradientScaling
-import cupy
+import cupy as cp
 import cv2
 
 import fcis
@@ -121,7 +121,7 @@ def main():
 
     # set random seed
     np.random.seed(random_seed)
-    cupy.random.seed(random_seed)
+    cp.random.seed(random_seed)
 
     # dataset
     if config.use_sbd:
