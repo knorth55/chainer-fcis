@@ -2,7 +2,6 @@ import contextlib
 import itertools
 import numpy as np
 import os
-import six
 import sys
 
 try:
@@ -16,10 +15,7 @@ except ImportError:
 import fcis
 
 
-def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_masks,
-                                    pred_labels, pred_scores,
-                                    gt_bboxes, gt_masks, gt_labels,
-                                    gt_crowdeds=None, gt_areas=None):
+def eval_instance_segmentation_coco(generator):
     """Evaluate instance segmentation based on evaluation code of MS COCO.
 
     Args:
@@ -73,31 +69,12 @@ def eval_instance_segmentation_coco(sizes, pred_bboxes, pred_masks,
     gt_coco = pycocotools.coco.COCO()
     pred_coco = pycocotools.coco.COCO()
 
-    sizes = iter(sizes)
-    pred_bboxes = iter(pred_bboxes)
-    pred_masks = iter(pred_masks)
-    pred_labels = iter(pred_labels)
-    pred_scores = iter(pred_scores)
-    gt_bboxes = iter(gt_bboxes)
-    gt_masks = iter(gt_masks)
-    gt_labels = iter(gt_labels)
-    gt_crowdeds = (iter(gt_crowdeds) if gt_crowdeds is not None
-                   else itertools.repeat(None))
-    gt_areas = (iter(gt_areas) if gt_areas is not None
-                else itertools.repeat(None))
-
     images = list()
     pred_anns = list()
     gt_anns = list()
     unique_labels = dict()
-    for i, (size, pred_bbox, pred_mask, pred_label, pred_score,
-            gt_bbox, gt_mask, gt_label,
-            gt_crowded, gt_area) in enumerate(
-                six.moves.zip(
-                    sizes, pred_bboxes, pred_masks,
-                    pred_labels, pred_scores,
-                    gt_bboxes, gt_masks, gt_labels,
-                    gt_crowdeds, gt_areas)):
+    for i, size, pred_bbox, pred_mask, pred_label, pred_score, \
+            gt_bbox, gt_mask, gt_label, gt_crowded, gt_area in generator:
 
         pred_whole_mask = fcis.utils.mask2whole_mask(
             pred_mask, pred_bbox, size)

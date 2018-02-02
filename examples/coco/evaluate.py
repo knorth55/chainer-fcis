@@ -3,6 +3,7 @@
 import argparse
 import chainer
 from easydict import EasyDict
+import numpy as np
 import os.path as osp
 import time
 import yaml
@@ -55,51 +56,37 @@ def main():
         split='minival2014', use_crowded=True,
         return_crowded=True, return_area=True)
 
-    sizes = list()
-    pred_bboxes = list()
-    pred_masks = list()
-    pred_labels = list()
-    pred_scores = list()
-    gt_bboxes = list()
-    gt_masks = list()
-    gt_labels = list()
-    gt_crowdeds = list()
-    gt_areas = list()
-
     print('start')
     start = time.time()
-    for i in range(0, len(dataset)):
-        img, gt_bbox, gt_whole_mask, gt_label, gt_crowded, gt_area = dataset[i]
-        _, H, W = img.shape
-        gt_mask = fcis.utils.whole_mask2mask(
-            gt_whole_mask, gt_bbox)
-        sizes.append((H, W))
-        gt_bboxes.append(gt_bbox)
-        gt_masks.append(gt_mask)
-        gt_labels.append(gt_label)
-        gt_crowdeds.append(gt_crowded)
-        gt_areas.append(gt_area)
 
-        # prediction
-        outputs = model.predict(
-            [img], target_height, max_width, score_thresh,
-            nms_thresh, mask_merge_thresh, binary_thresh)
-        pred_bbox = outputs[0][0]
-        pred_whole_mask = outputs[1][0]
-        pred_mask = fcis.utils.whole_mask2mask(
-            pred_whole_mask, pred_bbox)
-        pred_bboxes.append(pred_bbox)
-        pred_masks.append(pred_mask)
-        pred_labels.append(outputs[2][0])
-        pred_scores.append(outputs[3][0])
+    def inference_generator(model, dataset):
+        for i in range(0, len(dataset)):
+            img, gt_bbox, gt_whole_mask, gt_label, gt_crowded, gt_area = \
+                dataset[i]
+            _, H, W = img.shape
+            size = (H, W)
+            gt_mask = fcis.utils.whole_mask2mask(gt_whole_mask, gt_bbox)
 
-        if i % 100 == 0:
-            print('{} / {}, avg iter/sec={:.2f}'.format(
-                i, len(dataset), (i + 1) / (time.time() - start)))
+            # prediction
+            outputs = model.predict(
+                [img], target_height, max_width, score_thresh,
+                nms_thresh, mask_merge_thresh, binary_thresh)
+            pred_bbox = outputs[0][0]
+            pred_whole_mask = outputs[1][0]
+            pred_mask = fcis.utils.whole_mask2mask(
+                pred_whole_mask, pred_bbox)
+            pred_label = outputs[2][0]
+            pred_score = outputs[3][0]
 
-    results = eval_instance_segmentation_coco(
-        sizes, pred_bboxes, pred_masks, pred_labels, pred_scores,
-        gt_bboxes, gt_masks, gt_labels, gt_crowdeds, gt_areas)
+            if i % 100 == 0:
+                print('{} / {}, avg iter/sec={:.2f}'.format(
+                    i, len(dataset), (i + 1) / (time.time() - start)))
+
+            yield i, size, pred_bbox, pred_mask, pred_label, pred_score, \
+                gt_bbox, gt_mask, gt_label, gt_crowded, gt_area
+
+    generator = inference_generator(model, dataset)
+    results = eval_instance_segmentation_coco(generator)
 
     keys = [
         'ap/iou=0.50:0.95/area=all/maxDets=100',
@@ -109,8 +96,19 @@ def main():
         'ap/iou=0.50:0.95/area=medium/maxDets=100',
         'ap/iou=0.50:0.95/area=large/maxDets=100',
     ]
+    print('================================')
     for key in keys:
         print('m{}={}'.format(key, results['m' + key]))
+        for i, label_name in enumerate(coco_label_names):
+            if i == 0:
+                continue
+            try:
+                print('{}/{:s}={}'.format(
+                    key, label_name, results[key][i - 1]))
+            except IndexError:
+                print('{}/{:s}={}'.format(
+                    key, label_name, np.nan))
+        print('================================')
 
 
 if __name__ == '__main__':
