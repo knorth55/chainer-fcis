@@ -59,7 +59,7 @@ This is evaluation of model trained by this repo.
 |:--------------:|:-----------------:|:------------------:|:-----------:|:---------------------------:|:----------------------------:|:---------------------------:|
 | [Original](https://github.com/msracver/FCIS) | OHEM | 0.292 | 0.495 | 0.071 | 0.313 | 0.500 |
 | [Original](https://github.com/msracver/FCIS) | Random | 0.288 | 0.487 | 0.068 | 0.308 | 0.495 |
-| Ours | Random | 0.227 | 0.413 | 0.046 | 0.230 | 0.418 |
+| Ours | Random | 0.229 | 0.415 | 0.049 | 0.231 | 0.422 |
 
 ### Evaluation: Converted model from Original Repo
 
