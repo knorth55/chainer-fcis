@@ -159,9 +159,8 @@ def mask_probs2mask(mask_probs, bboxes, binary_thresh=0.4):
 
 def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
     import matplotlib
-    if os.environ.get('DISPLAY') is None:
-        matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    plt.switch_backend('Agg')
 
     # load config
     with open(cfgpath, 'r') as f:
