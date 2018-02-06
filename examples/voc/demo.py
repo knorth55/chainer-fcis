@@ -67,7 +67,7 @@ def main():
     orig_imgs = fcis.utils.read_images(imgpaths, channel_order='BGR')
 
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    savepath = osp.join(filepath, 'demo_viz', timestamp)
+    savepath = osp.join(filepath, 'vis_demo', timestamp)
     if not osp.exists(savepath):
         os.makedirs(savepath)
 
