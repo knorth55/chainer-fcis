@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
+import os
+import os.path as osp
 
+import easydict
 import fcn
+import yaml
 
 
 def visualize_mask(
@@ -151,3 +155,57 @@ def mask_probs2mask(mask_probs, bboxes, binary_thresh=0.4):
         mask = mask >= binary_thresh
         masks.append(mask)
     return masks
+
+
+def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
+    import matplotlib
+    if os.environ.get('DISPLAY') is None:
+        matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    # load config
+    with open(cfgpath, 'r') as f:
+        config = easydict.EasyDict(yaml.load(f))
+
+    target_height = config.target_height
+    max_width = config.max_width
+    score_thresh = config.score_thresh
+    nms_thresh = config.nms_thresh
+    mask_merge_thresh = config.mask_merge_thresh
+    binary_thresh = config.binary_thresh
+    min_drop_size = config.min_drop_size
+    iter2 = config.iter2
+
+    # load input images
+    img_names = sorted(os.listdir(imgdir))
+    imgpaths = []
+    for name in img_names:
+        if name.endswith(('.png', '.jpg', '.PNG', '.JPG')):
+            imgpaths.append(osp.join(imgdir, name))
+    orig_imgs = read_images(imgpaths, channel_order='BGR')
+
+    if not osp.exists(savepath):
+        os.makedirs(savepath)
+
+    for i, orig_img in enumerate(orig_imgs):
+        # prediction
+        # H, W, C -> C, H, W
+        bboxes, whole_masks, labels, cls_probs = model.predict(
+            [orig_img.transpose((2, 0, 1))],
+            target_height, max_width, score_thresh,
+            nms_thresh, mask_merge_thresh, binary_thresh,
+            min_drop_size, iter2=iter2)
+
+        # batch size = 1
+        bboxes = bboxes[0]
+        whole_masks = whole_masks[0]
+        labels = labels[0]
+        cls_probs = cls_probs[0]
+
+        # visualization
+        visualize_mask(
+            orig_img[:, :, ::-1], whole_masks, bboxes, labels,
+            cls_probs, label_names)
+        if savepath is not None:
+            plt.savefig(osp.join(savepath, '{}.png'.format(i)))
+        plt.show()
