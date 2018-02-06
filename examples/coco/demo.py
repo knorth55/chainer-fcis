@@ -22,6 +22,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0)
     parser.add_argument('-m', '--modelpath', default=None)
+    parser.add_argument('--imgdir', default=None)
     args = parser.parse_args()
 
     # chainer config for demo
@@ -57,9 +58,15 @@ def main():
     model.to_gpu(gpu)
 
     # load input images
-    imgdir = osp.join(filepath, 'images')
+    if args.imgdir is None:
+        imgdir = osp.join(filepath, 'images')
+    else:
+        imgdir = args.imgdir
     img_names = sorted(os.listdir(imgdir))
-    imgpaths = [osp.join(imgdir, name) for name in img_names]
+    imgpaths = []
+    for name in img_names:
+        if name.endswith(('.png', '.jpg', '.PNG', '.JPG')):
+            imgpaths.append(osp.join(imgdir, name))
     orig_imgs = fcis.utils.read_images(imgpaths, channel_order='BGR')
 
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
