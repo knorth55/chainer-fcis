@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import datetime
 import chainer
+import datetime
 import os
 import os.path as osp
 
