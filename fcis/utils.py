@@ -12,8 +12,6 @@ def visualize_mask(
         img, whole_masks, bboxes, labels, cls_probs,
         label_names, alpha=0.7, bbox_alpha=0.7, ax=None):
     import matplotlib.pyplot as plt
-    viz_img = img.copy()
-    viz_img = viz_img.astype(np.float)
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
@@ -22,6 +20,29 @@ def visualize_mask(
 
     cmap = fcn.utils.label_colormap(len(bboxes) + 1)
     cmap = cmap[1:]
+    vis_img = generate_vis_img(
+        img, whole_masks, bboxes, labels, cls_probs, label_names, alpha, cmap)
+    for color, l, bbox, cls_prob in zip(cmap, labels, bboxes, cls_probs):
+        bbox = np.round(bbox).astype(np.int32)
+        y_min, x_min, y_max, x_max = bbox
+        ax.text((x_max + x_min) / 2, y_min,
+                '{:s} {:.3f}'.format(label_names[l], cls_prob),
+                bbox={'facecolor': color, 'alpha': bbox_alpha},
+                fontsize=8, color='white')
+    ax.imshow(vis_img)
+    return ax
+
+
+def generate_vis_img(
+        img, whole_masks, bboxes, labels, cls_probs,
+        label_names, alpha=0.7, cmap=None
+):
+    vis_img = img.copy()
+    vis_img = vis_img.astype(np.float)
+
+    if cmap is None:
+        cmap = fcn.utils.label_colormap(len(bboxes) + 1)
+        cmap = cmap[1:]
     for color, l, whole_mask, bbox, cls_prob in zip(
             cmap, labels, whole_masks, bboxes, cls_probs):
         color_uint8 = color * 255.0
@@ -32,16 +53,11 @@ def visualize_mask(
             mask = mask.astype(np.int32)
             mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
             colored_mask = alpha * mask * color_uint8
-            sub_img = alpha * mask * viz_img[y_min:y_max, x_min:x_max, :]
-            viz_img[y_min:y_max, x_min:x_max, :] += colored_mask
-            viz_img[y_min:y_max, x_min:x_max, :] -= sub_img
-        ax.text((x_max + x_min) / 2, y_min,
-                '{:s} {:.3f}'.format(label_names[l], cls_prob),
-                bbox={'facecolor': color, 'alpha': bbox_alpha},
-                fontsize=8, color='white')
-    viz_img = viz_img.astype(np.uint8)
-    ax.imshow(viz_img)
-    return ax
+            sub_img = alpha * mask * vis_img[y_min:y_max, x_min:x_max, :]
+            vis_img[y_min:y_max, x_min:x_max, :] += colored_mask
+            vis_img[y_min:y_max, x_min:x_max, :] -= sub_img
+    vis_img = vis_img.astype(np.uint8)
+    return vis_img
 
 
 def mask2whole_mask(mask, bbox, size):
