@@ -51,6 +51,10 @@ class TestPSROIPolling2D(unittest.TestCase):
         self.assertEqual(
             (self.n_rois, self.output_dim, self.outh, self.outw), y_data.shape)
 
+    @condition.retry(3)
+    def test_forward_cpu(self):
+        self.check_forward(self.x, self.rois)
+
     @attr.gpu
     @condition.retry(3)
     def test_forward_gpu(self):
@@ -63,6 +67,10 @@ class TestPSROIPolling2D(unittest.TestCase):
                 self.spatial_scale, self.group_size, self.output_dim),
             (x_data, roi_data), y_grad, no_grads=[False, True],
             **self.check_backward_options)
+
+    @condition.retry(3)
+    def test_backward_cpu(self):
+        self.check_backward(self.x, self.rois, self.gy)
 
     @attr.gpu
     @condition.retry(3)

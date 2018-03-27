@@ -29,6 +29,7 @@ before_script:
 
 script:
   - flake8 --ignore=E402 .
+  - nosetests -a  '!gpu' tests
 
 notifications:
   email: false
