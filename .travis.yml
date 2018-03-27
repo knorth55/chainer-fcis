@@ -22,14 +22,20 @@ install:
   - conda install -c menpo opencv
   - pip install Cython
   - pip install 'git+https://github.com/pdollar/coco.git#egg=pycocotools&subdirectory=PythonAPI'
+  - pip install -r requirements.txt
   - pip install -e .
 
 before_script:
-  - pip install flake8 hacking
+  - pip install flake8
+  - pip install hacking
+  - pip install autopep8
+  - pip install mock
+  - pip install nose
+  - pip install pytest
 
 script:
   - flake8 --ignore=E402 .
-  - nosetests -a  '!gpu' tests
+  - nosetests -a '!gpu' tests
 
 notifications:
   email: false
