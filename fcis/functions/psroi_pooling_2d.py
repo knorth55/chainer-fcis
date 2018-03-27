@@ -4,25 +4,29 @@
 # Modified by Shingo Kitagawa (@knorth55)
 
 import numpy as np
+import six
 
-from chainer import cuda
+from chainer.backends import cuda
 from chainer import function
 from chainer.utils import type_check
 
 if cuda.available:
     import cupy as cp
-    _available = True
-else:
-    _available = False
+
+
+def _roi_pooling_slice(size, stride, max_size, roi_offset):
+    start = int(np.floor(size * stride))
+    end = int(np.ceil((size + 1) * stride))
+
+    start = min(max(start + roi_offset, 0), max_size)
+    end = min(max(end + roi_offset, 0), max_size)
+
+    return slice(start, end), end - start
 
 
 class PSROIPooling2D(function.Function):
 
     def __init__(self, outh, outw, spatial_scale, group_size, output_dim):
-        if not _available:
-            raise ValueError(
-                'CUDA is not available\n'
-                'Please install CUDA and cupy correctly')
         self.outh, self.outw = outh, outw
         self.spatial_scale = spatial_scale
         self.group_size = group_size
@@ -40,6 +44,53 @@ class PSROIPooling2D(function.Function):
             roi_type.shape[1] == 5,
         )
 
+    def forward_cpu(self, inputs):
+        self.retain_inputs((1,))
+        self._bottom_data_shape = inputs[0].shape
+
+        bottom_data, bottom_rois = inputs
+        channels, height, width = bottom_data.shape[1:]
+        n_rois = bottom_rois.shape[0]
+        top_data = np.empty(
+            (n_rois, self.output_dim, self.outh, self.outw), dtype=np.float32)
+
+        for i_roi in six.moves.range(n_rois):
+            idx, xmin, ymin, xmax, ymax = bottom_rois[i_roi]
+            idx = int(idx)
+            xmin = round(xmin * self.spatial_scale)
+            xmax = round(xmax * self.spatial_scale)
+            ymin = round(ymin * self.spatial_scale)
+            ymax = round(ymax * self.spatial_scale)
+            roi_width = max(xmax - xmin, 0.1)
+            roi_height = max(ymax - ymin, 0.1)
+
+            strideh = 1. * roi_height / self.outh
+            stridew = 1. * roi_width / self.outw
+            strided = 1. * channels / self.output_dim
+            grouph = int(round(self.outh / self.group_size))
+            groupw = int(round(self.outw / self.group_size))
+
+            for outh in six.moves.range(self.outh):
+                sliceh, lenh = _roi_pooling_slice(
+                    outh, strideh, height, int(ymin))
+                if sliceh.stop <= sliceh.start:
+                    continue
+                for outw in six.moves.range(self.outw):
+                    slicew, lenw = _roi_pooling_slice(
+                        outw, stridew, width, int(xmin))
+                    if slicew.stop <= slicew.start:
+                        continue
+                    for outd in six.moves.range(self.output_dim):
+                        sliced, lend = _roi_pooling_slice(
+                            outd, strided, channels, 0)
+                        roi_data = bottom_data[idx, sliced, sliceh, slicew]\
+                            .reshape(lend, -1)
+                        d = (outh // grouph) * self.group_size \
+                            + (outw // groupw)
+                        top_data[i_roi, outd, outh, outw] = np.average(
+                            roi_data[d])
+        return top_data,
+
     def forward_gpu(self, inputs):
         self.retain_inputs((1,))
         self._bottom_data_shape = inputs[0].shape
@@ -49,7 +100,7 @@ class PSROIPooling2D(function.Function):
         n_rois = bottom_rois.shape[0]
         top_data = cp.empty(
             (n_rois, self.output_dim, self.outh, self.outw), dtype=np.float32)
-        cp.ElementwiseKernel(
+        cuda.cupy.ElementwiseKernel(
             '''
             raw float32 bottom_data, float32 spatial_scale, int32 channels,
             int32 height, int32 width, int32 pooled_height, int32 pooled_width,
@@ -123,6 +174,48 @@ class PSROIPooling2D(function.Function):
           bottom_rois, top_data)
 
         return top_data,
+
+    def backward_cpu(self, inputs, gy):
+        bottom_rois = inputs[1]
+        channels, height, width = self._bottom_data_shape[1:]
+        n_rois = bottom_rois.shape[0]
+        bottom_diff = np.zeros(self._bottom_data_shape, np.float32)
+
+        for i_roi in six.moves.range(n_rois):
+            idx, xmin, ymin, xmax, ymax = bottom_rois[i_roi]
+            idx = int(idx)
+            xmin = round(xmin * self.spatial_scale)
+            xmax = round(xmax * self.spatial_scale)
+            ymin = round(ymin * self.spatial_scale)
+            ymax = round(ymax * self.spatial_scale)
+            roi_width = max(xmax - xmin, 0.1)
+            roi_height = max(ymax - ymin, 0.1)
+
+            strideh = 1. * roi_height / self.outh
+            stridew = 1. * roi_width / self.outw
+            strided = 1. * channels / self.output_dim
+            grouph = int(round(self.outh / self.group_size))
+            groupw = int(round(self.outw / self.group_size))
+
+            for outh in six.moves.range(self.outh):
+                sliceh, lenh = _roi_pooling_slice(
+                    outh, strideh, height, int(ymin))
+                if sliceh.stop <= sliceh.start:
+                    continue
+                for outw in six.moves.range(self.outw):
+                    slicew, lenw = _roi_pooling_slice(
+                        outw, stridew, width, int(xmin))
+                    if slicew.stop <= slicew.start:
+                        continue
+                    for outd in six.moves.range(self.output_dim):
+                        diff_val = gy[0][i_roi, outd, outh, outw] / lenh / lenw
+                        startd = int(np.floor(outd * strided))
+                        startd = min(max(startd, 0), channels)
+
+                        d = (outh // grouph) * self.group_size \
+                            + (outw // groupw) + startd
+                        bottom_diff[idx, d, sliceh, slicew] += diff_val
+        return bottom_diff, None
 
     def backward_gpu(self, inputs, gy):
         bottom_rois = inputs[1]
