@@ -2,8 +2,14 @@ import copy
 
 from chainer import reporter
 import chainer.training.extensions
-from chainercv.utils import apply_prediction_to_iterator
+
 from fcis.evaluations import eval_instance_segmentation_coco
+
+try:
+    from chainercv.utils import apply_to_iterator
+except Exception:
+    from chainercv.utils import apply_prediction_to_iterator \
+        as apply_to_iterator
 
 
 class InstanceSegmentationCOCOEvaluator(chainer.training.extensions.Evaluator):
@@ -26,7 +32,7 @@ class InstanceSegmentationCOCOEvaluator(chainer.training.extensions.Evaluator):
         else:
             it = copy.copy(iterator)
 
-        imgs, pred_values, gt_values = apply_prediction_to_iterator(
+        imgs, pred_values, gt_values = apply_to_iterator(
             target.predict, it)
         # delete unused iterator explicitly
         sizes = [img.shape for img in imgs]
