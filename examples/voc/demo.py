@@ -22,8 +22,7 @@ def main():
     cfgpath = osp.join(filepath, 'cfg', 'demo.yaml')
 
     # chainer config for demo
-    gpu = args.gpu
-    chainer.cuda.get_device_from_id(gpu).use()
+    gpu = int(args.gpu)
     chainer.global_config.train = False
     chainer.global_config.enable_backprop = False
 
@@ -41,7 +40,10 @@ def main():
     if modelpath is None:
         modelpath = model.download('voc')
     chainer.serializers.load_npz(modelpath, model)
-    model.to_gpu(gpu)
+
+    if gpu >= 0:
+        chainer.cuda.get_device_from_id(gpu).use()
+        model.to_gpu(gpu)
 
     # load input images
     if args.imgdir is None:
