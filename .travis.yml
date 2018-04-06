@@ -19,6 +19,7 @@ before_install:
 
 install:
   - conda create --name=fcis python=$TRAVIS_PYTHON_VERSION -q -y
+  - source activate fcis
   - conda install -c menpo opencv
   - pip install Cython
   - pip install 'git+https://github.com/pdollar/coco.git#egg=pycocotools&subdirectory=PythonAPI'
@@ -34,7 +35,7 @@ before_script:
   - pip install pytest
 
 script:
-  - flake8 --ignore=E402 .
+  - flake8 .
   - nosetests -a '!gpu' tests
 
 notifications:
