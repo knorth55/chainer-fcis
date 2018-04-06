@@ -35,8 +35,7 @@ Notification
 TODO
 ----
 - VOC
-  - [x] Reproduce original repo training accuracy
-  - [ ] Refine evaluation code
+  - [ ] Reproduce original repo training accuracy
 - COCO
   - [ ] Reproduce original repo training accuracy
   - [ ] Refine evaluation code
@@ -50,6 +49,7 @@ We recommend to use [Anacoda](https://anaconda.org/).
 # Requirement installation
 conda create -n fcis python=2.7
 conda install -c menpo opencv
+source activate fcis
 pip install cupy
 
 # Installation
