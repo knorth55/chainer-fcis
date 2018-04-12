@@ -7,8 +7,8 @@ from chainer.links.connection.dilated_convolution_2d \
     import DilatedConvolution2D
 from chainer.links.normalization.batch_normalization import BatchNormalization
 import fcis
-import os.path as osp
 import numpy as np
+import os.path as osp
 
 import _init_paths  # NOQA
 
