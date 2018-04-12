@@ -32,7 +32,7 @@ class FCIS(chainer.Chain):
         img = img.transpose((1, 2, 0))  # C, H, W -> H, W, C
         img = fcis.utils.resize_image(img, target_height, max_width)
         img = img.astype(np.float32)
-        img -= self.mean_bgr
+        img -= self.mean_bgr[::-1]
         img = img.transpose((2, 0, 1))  # H, W, C -> C, H, W
         return img
 
