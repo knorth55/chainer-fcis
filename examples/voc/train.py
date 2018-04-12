@@ -39,17 +39,17 @@ def get_keep_indices(bboxes):
 
 class Transform(object):
 
-    def __init__(self, model, target_height, max_width, flip=True):
+    def __init__(self, model, min_size, max_size, flip=True):
         self.model = model
-        self.target_height = target_height
-        self.max_width = max_width
+        self.min_size = min_size
+        self.max_size = max_size
         self.flip = flip
 
     def __call__(self, in_data):
         orig_img, bboxes, whole_mask, labels = in_data
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
-            orig_img, self.target_height, self.max_width)
+            orig_img, self.min_size, self.max_size)
         img = img.astype(np.float32)
         del orig_img
         _, H, W = img.shape
@@ -110,8 +110,8 @@ def main():
 
     shutil.copy(cfgpath, osp.join(out, 'train.yaml'))
 
-    target_height = config.target_height
-    max_width = config.max_width
+    min_size = config.min_size
+    max_size = config.max_size
     random_seed = config.random_seed
     max_epoch = config.max_epoch
     lr = config.lr
@@ -167,10 +167,10 @@ def main():
 
     train_dataset = TransformDataset(
         train_dataset,
-        Transform(model.fcis, target_height, max_width))
+        Transform(model.fcis, min_size, max_size))
     test_dataset = TransformDataset(
         test_dataset,
-        Transform(model.fcis, target_height, max_width, flip=False))
+        Transform(model.fcis, min_size, max_size, flip=False))
 
     # iterator
     train_iter = chainer.iterators.SerialIterator(

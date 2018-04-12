@@ -27,7 +27,7 @@ from fcis.datasets.coco import COCOInstanceSegmentationDataset
 filepath = osp.abspath(osp.dirname(__file__))
 
 
-def remove_zero_bbox(dataset, target_height, max_width):
+def remove_zero_bbox(dataset, min_size, max_size):
     remove_ids = []
 
     for i in range(0, len(dataset)):
@@ -40,10 +40,12 @@ def remove_zero_bbox(dataset, target_height, max_width):
 
         orig_H = dataset.img_props[img_id]['height']
         orig_W = dataset.img_props[img_id]['width']
-        resize_scale = fcis.utils.get_resize_scale(
-            (orig_H, orig_W), target_height, max_width)
-        H = int(round(resize_scale * orig_H))
-        W = int(round(resize_scale * orig_W))
+        scale = min_size / min(orig_H, orig_W)
+        if scale * max(orig_H, orig_W) > max_size:
+            scale = max_size / max(orig_H, orig_W)
+
+        H = int(round(scale * orig_H))
+        W = int(round(scale * orig_W))
 
         resized_bboxes = chainercv.transforms.resize_bbox(
             bboxes, (orig_H, orig_W), (H, W))
@@ -73,17 +75,17 @@ def get_keep_indices(bboxes):
 
 class Transform(object):
 
-    def __init__(self, model, target_height, max_width, flip=True):
+    def __init__(self, model, min_size, max_size, flip=True):
         self.model = model
-        self.target_height = target_height
-        self.max_width = max_width
+        self.min_size = min_size
+        self.max_size = max_size
         self.flip = flip
 
     def __call__(self, in_data):
         orig_img, bboxes, whole_mask, labels = in_data
         _, orig_H, orig_W = orig_img.shape
         img = self.model.prepare(
-            orig_img, self.target_height, self.max_width)
+            orig_img, self.min_size, self.max_size)
         del orig_img
         _, H, W = img.shape
         scale = H / orig_H
@@ -144,8 +146,8 @@ def main():
     if comm.rank == 0:
         shutil.copy(cfgpath, osp.join(out, 'train.yaml'))
 
-    target_height = config.target_height
-    max_width = config.max_width
+    min_size = config.min_size
+    max_size = config.max_size
     random_seed = config.random_seed
     max_epoch = config.max_epoch
     lr = config.lr
@@ -188,16 +190,16 @@ def main():
     if comm.rank == 0:
         train_dataset = COCOInstanceSegmentationDataset(split='trainval2014')
         train_dataset = remove_zero_bbox(
-            train_dataset, target_height, max_width)
+            train_dataset, min_size, max_size)
         # test_dataset = COCOInstanceSegmentationDataset(split='minival2014')
         # test_dataset = remove_zero_bbox(
-        #     test_dataset, target_height, max_width)
+        #     test_dataset, min_size, max_size)
         train_dataset = TransformDataset(
             train_dataset,
-            Transform(model.fcis, target_height, max_width))
+            Transform(model.fcis, min_size, max_size))
         # test_dataset = TransformDataset(
         #     test_dataset,
-        #     Transform(model.fcis, target_height, max_width, flip=False))
+        #     Transform(model.fcis, min_size, max_size, flip=False))
     else:
         train_dataset = None
         # test_dataset = None

@@ -1,7 +1,7 @@
 random_seed: 1111
 max_epoch: 44
-target_height: 600
-max_width: 1000
+min_size: 600
+max_size: 1000
 lr: 0.0005 
 # cooldown iter num
 cooldown_epoch: 28

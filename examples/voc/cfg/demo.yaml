@@ -1,5 +1,5 @@
-target_height: 600
-max_width: 1000
+min_size: 600
+max_size: 1000
 score_thresh: 0.7
 nms_thresh: 0.3
 mask_merge_thresh: 0.5

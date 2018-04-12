@@ -1,7 +1,7 @@
 random_seed: 1234
 max_epoch: 18
-target_height: 600
-max_width: 1000
+min_size: 600
+max_size: 1000
 lr: 5.0e-5
 # warmup_iter num
 warmup_iter: 4000

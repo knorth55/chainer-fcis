@@ -34,8 +34,8 @@ def main():
     with open(cfgpath, 'r') as f:
         config = EasyDict(yaml.load(f))
 
-    target_height = config.target_height
-    max_width = config.max_width
+    min_size = config.min_size
+    max_size = config.max_size
     score_thresh = 1e-3
     nms_thresh = config.nms_thresh
     mask_merge_thresh = config.mask_merge_thresh
@@ -77,7 +77,7 @@ def main():
 
             # prediction
             outputs = model.predict(
-                [img], target_height, max_width, score_thresh,
+                [img], min_size, max_size, score_thresh,
                 nms_thresh, mask_merge_thresh, binary_thresh,
                 min_drop_size, iter2=iter2)
             del img

@@ -182,8 +182,8 @@ def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
     with open(cfgpath, 'r') as f:
         config = easydict.EasyDict(yaml.load(f))
 
-    target_height = config.target_height
-    max_width = config.max_width
+    min_size = config.min_size
+    max_size = config.max_size
     score_thresh = config.score_thresh
     nms_thresh = config.nms_thresh
     mask_merge_thresh = config.mask_merge_thresh
@@ -197,7 +197,7 @@ def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
     for name in img_names:
         if name.endswith(('.png', '.jpg', '.PNG', '.JPG')):
             imgpaths.append(osp.join(imgdir, name))
-    orig_imgs = read_images(imgpaths, channel_order='RGB')
+    orig_imgs = read_images(imgpaths)
 
     if not osp.exists(savepath):
         os.makedirs(savepath)
@@ -207,7 +207,7 @@ def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
         # H, W, C -> C, H, W
         bboxes, whole_masks, labels, cls_probs = model.predict(
             [orig_img.transpose((2, 0, 1))],
-            target_height, max_width, score_thresh,
+            min_size, max_size, score_thresh,
             nms_thresh, mask_merge_thresh, binary_thresh,
             min_drop_size, iter2=iter2)
 

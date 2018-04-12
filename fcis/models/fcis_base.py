@@ -2,6 +2,7 @@ from __future__ import division
 
 import chainer
 import chainer.functions as F
+from chainercv.transforms.image.resize import resize
 import numpy as np
 
 import fcis
@@ -27,18 +28,24 @@ class FCIS(chainer.Chain):
             self.head(roi_features, rois, roi_indices, img_size, iter2=iter2)
         return rois, roi_indices, roi_seg_scores, roi_cls_locs, roi_cls_scores
 
-    def prepare(self, orig_img, target_height=600, max_width=1000):
+    def prepare(self, orig_img, min_size=600, max_size=1000):
         img = orig_img.copy()
-        img = img.transpose((1, 2, 0))  # C, H, W -> H, W, C
-        img = fcis.utils.resize_image(img, target_height, max_width)
         img = img.astype(np.float32)
+        _, H, W = img.shape
+        scale = min_size / min(H, W)
+
+        if scale * max(H, W) > max_size:
+            scale = max_size / max(H, W)
+
+        img = resize(img, (int(H * scale), int(W * scale)))
+        img = img.transpose((1, 2, 0))  # C, H, W -> H, W, C
         img -= self.mean_bgr[::-1]
         img = img.transpose((2, 0, 1))  # H, W, C -> C, H, W
         return img
 
     def predict(
             self, orig_imgs,
-            target_height=600, max_width=1000,
+            min_size=600, max_size=1000,
             score_thresh=0.7, nms_thresh=0.3,
             mask_merge_thresh=0.5, binary_thresh=0.4,
             min_drop_size=2,
@@ -52,7 +59,7 @@ class FCIS(chainer.Chain):
         for orig_img in orig_imgs:
             _, orig_H, orig_W = orig_img.shape
             img = self.prepare(
-                orig_img, target_height, max_width)
+                orig_img, min_size, max_size)
             img = img.astype(np.float32)
             scale = img.shape[1] / orig_H
             with chainer.using_config('train', False), \
