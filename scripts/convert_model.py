@@ -2,8 +2,13 @@
 
 import argparse
 import chainer
+from chainer.links.connection.convolution_2d import Convolution2D
+from chainer.links.connection.dilated_convolution_2d \
+    import DilatedConvolution2D
+from chainer.links.normalization.batch_normalization import BatchNormalization
 import fcis
 import os.path as osp
+import numpy as np
 
 import _init_paths  # NOQA
 
@@ -36,7 +41,48 @@ def main():
         print('dataset must be coco or voc')
     arg_params, aux_params = load_param(
         prefix, epoch, process=True)
+    prev_l_dict = {}
+    for prev_l in model.namedlinks():
+        if isinstance(prev_l[1], Convolution2D) \
+                or isinstance(prev_l[1], DilatedConvolution2D):
+            if prev_l[1].b is None:
+                b = None
+            else:
+                b = prev_l[1].b.array
+            prev_l_dict[prev_l[0]] = {
+                'W': prev_l[1].W.array,
+                'b': b,
+            }
+        elif isinstance(prev_l[1], BatchNormalization):
+            prev_l_dict[prev_l[0]] = {
+                'gamma': prev_l[1].gamma.array,
+                'beta': prev_l[1].beta.array,
+                'avg_mean': prev_l[1].avg_mean,
+                'avg_var': prev_l[1].avg_var,
+            }
     model = convert(model, arg_params, aux_params)
+    for l in model.namedlinks():
+        name = l[0]
+        if isinstance(l[1], Convolution2D) \
+                or isinstance(l[1], DilatedConvolution2D):
+            for v_name in ['W', 'b']:
+                prev_val = prev_l_dict[name][v_name]
+                if prev_val is None and v_name == 'b':
+                    if getattr(l[1], v_name) is not None:
+                        print('Something wrong: {0} {1}'.format(name, v_name))
+                    continue
+                val = getattr(l[1], v_name).array
+            if np.all(np.equal(val, prev_val)):
+                print('Not updated {0} {1}'.format(name, v_name))
+        elif isinstance(l[1], BatchNormalization):
+            for v_name in ['gamma', 'beta', 'avg_mean', 'avg_var']:
+                if v_name.startswith('avg'):
+                    val = getattr(l[1], v_name)
+                else:
+                    val = getattr(l[1], v_name).array
+                prev_val = prev_l_dict[name][v_name]
+            if np.all(np.equal(val, prev_val)):
+                print('Not updated {0} {1}'.format(name, v_name))
     chainer.serializers.save_npz(
         './fcis_{}.npz'.format(args.dataset), model)
 

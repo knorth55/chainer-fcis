@@ -186,7 +186,6 @@ class COCOInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         img_fn = os.path.join(
             img_root, self.img_props[img_id]['file_name'])
         img = utils.read_image(img_fn, dtype=np.float32, color=True)
-        img = img[::-1, :, :]  # RGB -> BGR
         _, H, W = img.shape
 
         bbox, whole_mask, label, crowded, area = self._get_annotations(i)

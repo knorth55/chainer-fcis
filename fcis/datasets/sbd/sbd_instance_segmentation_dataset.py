@@ -18,6 +18,7 @@ class SBDInstanceSegmentationDataset(VOCInstanceSegmentationDataset):
         ins_imgpath = osp.join(
             self.data_dir, 'inst/{}.mat'.format(data_id))
         img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
+        img = img[:, :, ::-1]
         img = img.transpose((2, 0, 1))
         mat = scipy.io.loadmat(seg_imgpath)
         seg_img = mat['GTcls']['Segmentation'][0][0].astype(np.int32)

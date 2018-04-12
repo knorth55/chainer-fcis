@@ -62,6 +62,7 @@ class VOCInstanceSegmentationDataset(chainer.dataset.DatasetMixin):
         ins_imgpath = osp.join(
             self.data_dir, 'SegmentationObject/{}.png'.format(data_id))
         img = cv2.imread(imgpath)
+        img = img[:, :, ::-1]
         img = img.transpose((2, 0, 1))
         seg_img = PIL.Image.open(seg_imgpath)
         seg_img = np.array(seg_img, dtype=np.int32)

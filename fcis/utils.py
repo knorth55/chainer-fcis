@@ -125,7 +125,7 @@ def label_mask2whole_mask(label_mask):
     return mask
 
 
-def read_images(imgpaths, channel_order='BGR'):
+def read_images(imgpaths, channel_order='RGB'):
     imgs = []
     for imgpath in imgpaths:
         img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
@@ -197,7 +197,7 @@ def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
     for name in img_names:
         if name.endswith(('.png', '.jpg', '.PNG', '.JPG')):
             imgpaths.append(osp.join(imgdir, name))
-    orig_imgs = read_images(imgpaths, channel_order='BGR')
+    orig_imgs = read_images(imgpaths, channel_order='RGB')
 
     if not osp.exists(savepath):
         os.makedirs(savepath)
@@ -219,7 +219,7 @@ def vis_demo(model, cfgpath, imgdir, label_names, savepath=None):
 
         # visualization
         visualize_mask(
-            orig_img[:, :, ::-1], whole_masks, bboxes, labels,
+            orig_img, whole_masks, bboxes, labels,
             cls_probs, label_names)
         if savepath is not None:
             plt.savefig(osp.join(savepath, '{}.png'.format(i)))
