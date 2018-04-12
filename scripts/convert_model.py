@@ -61,7 +61,6 @@ def convert(model, arg_params, aux_params):
         value = value.asnumpy()
         # ResNetC1
         if name.startswith('conv1'):
-            value = value[:, ::-1, :, :]
             layer = model.extractor.res1.conv1
             assert layer.W.array.shape == value.shape, name
             layer.W.array = value
