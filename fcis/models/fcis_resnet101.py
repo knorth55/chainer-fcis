@@ -275,7 +275,7 @@ class FCISResNet101(FCIS):
         if dataset == 'voc_converted':
             url = 'https://drive.google.com/uc?id=1qFEV3txP_TSd9N0ZVmR9gaS5NoTi9MIr'  # NOQA
             path = osp.join(cls.model_dir, 'fcis_voc_converted.npz')
-            md5 = '95a4029fe1e0ae6100cca8a3971c687c'
+            md5 = '89bd7af441b1cb61de3835f8748eac7f'
         elif dataset == 'voc':
             url = 'https://drive.google.com/uc?id=1PscvchtzYsT_xsNX8EsmY1j0Kju6j0r0'  # NOQA
             path = osp.join(cls.model_dir, 'fcis_voc_trained.npz')
@@ -283,7 +283,7 @@ class FCISResNet101(FCIS):
         else:
             url = 'https://drive.google.com/uc?id=1j98jQp2ATBdiQ51p0YsWGkC5mOmduzPW'  # NOQA
             path = osp.join(cls.model_dir, 'fcis_coco.npz')
-            md5 = 'f71a7213b32c2a7ef4522561bc917577'
+            md5 = 'fa44b5e3382cdf91c3b6d79a9dbe8725'
         return fcn.data.cached_download(url=url, path=path, md5=md5)
 
 
