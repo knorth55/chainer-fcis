@@ -57,6 +57,9 @@ class ResNet101Extractor(chainer.Chain):
             assert conv is not orig_conv
             assert conv.W.array.shape == orig_conv.W.array.shape
             conv.W.array[:] = orig_conv.W.array
+            if conv.b is not None:
+                assert conv.b.array.shape == orig_conv.W.array.shape
+                conv.b.array = orig_conv.b.array
 
         def copy_bn(bn, orig_bn):
             assert bn is not orig_bn
