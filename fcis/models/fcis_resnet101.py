@@ -282,7 +282,7 @@ class FCISResNet101(FCIS):
         elif dataset == 'voc':
             url = 'https://drive.google.com/uc?id=1PscvchtzYsT_xsNX8EsmY1j0Kju6j0r0'  # NOQA
             path = osp.join(cls.model_dir, 'fcis_voc_trained.npz')
-            md5 = 'aa3206d755abde94bfb2af99cfd4b9bf'
+            md5 = '522735f5149d2a74fc7552490c931311'
         else:
             url = 'https://drive.google.com/uc?id=1j98jQp2ATBdiQ51p0YsWGkC5mOmduzPW'  # NOQA
             path = osp.join(cls.model_dir, 'fcis_coco.npz')
