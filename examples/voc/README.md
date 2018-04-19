@@ -10,7 +10,7 @@ Trained model can be dowloaded [here](https://drive.google.com/open?id=1Pscvchtz
 python demo.py
 ```
 
-## Training
+## Single GPU Training
 
 ```bash
 # Download dataset manually in ~/data/datasets/VOC
@@ -18,6 +18,18 @@ python demo.py
 # python download_datasets.py --sbd
 
 python train.py
+```
+
+## Multi GPU Training
+
+### Requirements
+
+- [OpenMPI](https://www.open-mpi.org/)
+- [nccl](https://developer.nvidia.com/nccl)
+- [ChainerMN](https://github.com/chainer/chainermn)
+
+```bash
+mpiexec -n 4 python train_multigpu.py
 ```
 
 ## Evaluation
