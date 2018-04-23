@@ -115,9 +115,19 @@ def main():
     min_size = config.min_size
     max_size = config.max_size
     random_seed = config.random_seed
-    max_epoch = config.max_epoch
+    if 'max_epoch' in config:
+        max_epoch = config.max_epoch
+        max_iter = None
+    else:
+        max_epoch = None
+        max_iter = config.max_iter
     lr = config.lr
-    cooldown_epoch = config.cooldown_epoch
+    if 'cooldown_epoch' in config:
+        cooldown_epoch = config.cooldown_epoch
+        cooldown_iter = None
+    else:
+        cooldown_epoch = None
+        cooldown_iter = config.cooldown_iter
     lr = config.lr
     lr_cooldown_factor = config.lr_cooldown_factor
 
@@ -193,21 +203,32 @@ def main():
         train_iter, optimizer, converter=fcis.dataset.concat_examples,
         device=device)
 
+    # interval
+    if max_epoch is not None:
+        max_interval = max_epoch, 'epoch'
+    else:
+        max_interval = max_iter, 'iteration'
+
+    if cooldown_epoch is not None:
+        cooldown_interval = cooldown_epoch, 'epoch'
+    else:
+        cooldown_interval = cooldown_iter, 'iteration'
+
+    save_interval = 1, 'epoch'
+    log_interval = 100, 'iteration'
+    print_interval = 20, 'iteration'
+    test_interval = 8, 'epoch'
+
+    # trainer
     trainer = chainer.training.Trainer(
-        updater, (max_epoch, 'epoch'), out=out)
+        updater, max_interval, out=out)
 
     # lr scheduler
     trainer.extend(
         chainer.training.extensions.ExponentialShift(
             'lr', lr_cooldown_factor, init=lr),
         trigger=chainer.training.triggers.ManualScheduleTrigger(
-            [cooldown_epoch], 'epoch'))
-
-    # interval
-    save_interval = 1, 'epoch'
-    log_interval = 100, 'iteration'
-    print_interval = 20, 'iteration'
-    test_interval = 8, 'epoch'
+            *cooldown_interval))
 
     # evaluator
     trainer.extend(
