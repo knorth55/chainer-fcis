@@ -48,14 +48,14 @@ This is evaluation of model trained by our repo.
 
 | Implementation | Sampling Strategy | mAP@0.5 | mAP@0.7 |
 |:--------------:|:-----------------:|:-------:|:-------:|
-| [Original](https://github.com/msracver/FCIS) | Random | 0.657 | 0.520 |
+| [Original](https://github.com/msracver/FCIS) | Random | **0.657** | **0.520** |
 | Ours | Random | 0.632 | 0.492 |
 
 **Detailed Evaluation**
 
 | Item | Ours AP@0.5 | Original AP@0.5 | Ours AP@0.7 | Original AP@0.7 |
 |:------------:|:-----:|:-----:|:-----:|:-----:|
-| **mean**     | 0.632 | 0.657 | 0.492 | 0.520 |
+| **mean**     | 0.632 | **0.657** | 0.492 | **0.520** |
 | aeroplane    | 0.769 | 0.798 | 0.618 | 0.672 |
 | bicycle      | 0.685 | 0.702 | 0.442 | 0.454 |
 | bird         | 0.687 | 0.719 | 0.584 | 0.609 |
