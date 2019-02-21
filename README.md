@@ -1,3 +1,5 @@
+# This project has moved to [ChainerCV](https://github.com/chainer/chainercv).
+
 chainer-fcis - FCIS
 ===================
 [![PyPI Version](https://img.shields.io/pypi/v/fcis.svg)](https://pypi.python.org/pypi/fcis)
