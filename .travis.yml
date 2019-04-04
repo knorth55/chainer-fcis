@@ -31,12 +31,11 @@ before_script:
   - pip install hacking
   - pip install autopep8
   - pip install mock
-  - pip install nose
   - pip install pytest
 
 script:
   - flake8 .
-  - nosetests -a '!gpu' tests
+  - pytest -m "not gpu" tests
 
 notifications:
   email: false
